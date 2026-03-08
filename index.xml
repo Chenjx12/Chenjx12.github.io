@@ -1,2 +1,14 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Chenjx12's blog</title><link>https://example.org/</link><description>Recent content on Chenjx12's blog</description><generator>Hugo -- 0.157.0</generator><language>zh-CN</language><lastBuildDate>Sat, 07 Mar 2026 22:00:00 +0800</lastBuildDate><atom:link href="https://example.org/index.xml" rel="self" type="application/rss+xml"/><item><title>Hello World</title><link>https://example.org/post/hello-world/</link><pubDate>Sat, 07 Mar 2026 22:00:00 +0800</pubDate><guid>https://example.org/post/hello-world/</guid><description>&lt;h2 id="欢迎来到我的博客"&gt;欢迎来到我的博客&lt;/h2&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Chenjx12's blog</title><link>https://chenjx12.github.io/</link><description>Recent content on Chenjx12's blog</description><generator>Hugo -- 0.157.0</generator><language>zh-CN</language><lastBuildDate>Sun, 08 Mar 2026 10:00:00 +0800</lastBuildDate><atom:link href="https://chenjx12.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>个人博客搭建</title><link>https://chenjx12.github.io/post/%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/</link><pubDate>Sun, 08 Mar 2026 10:00:00 +0800</pubDate><guid>https://chenjx12.github.io/post/%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/</guid><description>从0开始搭建个人博客</description></item><item><title>关于我</title><link>https://chenjx12.github.io/post/about/</link><pubDate>Sun, 08 Mar 2026 03:36:00 +0800</pubDate><guid>https://chenjx12.github.io/post/about/</guid><description>&lt;h2 id="关于-chenjx12"&gt;关于 Chenjx12&lt;/h2&gt;
+&lt;p&gt;热爱技术，喜欢分享。&lt;/p&gt;
+&lt;h3 id="技能"&gt;技能&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Linux&lt;/li&gt;
+&lt;li&gt;网络安全（pwn）&lt;/li&gt;
+&lt;li&gt;杂七杂八&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="联系方式"&gt;联系方式&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;GitHub: &lt;a href="https://github.com/Chenjx12"&gt;Chenjx12&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Email: &lt;a href="mailto:chenj_x12@foxmail.com"&gt;chenj_x12@foxmail.com&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description></item><item><title>Hello World</title><link>https://chenjx12.github.io/post/hello-world/</link><pubDate>Sat, 07 Mar 2026 22:00:00 +0800</pubDate><guid>https://chenjx12.github.io/post/hello-world/</guid><description>&lt;h2 id="欢迎来到我的博客"&gt;欢迎来到我的博客&lt;/h2&gt;
 &lt;p&gt;这是我的第一篇 Hugo 文章！&lt;/p&gt;</description></item></channel></rss>
