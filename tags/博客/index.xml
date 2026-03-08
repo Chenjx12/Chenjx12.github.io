@@ -1,20 +1,2 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
-  <channel>
-    <title>博客 on My New Hugo Site</title>
-    <link>http://localhost:1313/tags/%E5%8D%9A%E5%AE%A2/</link>
-    <description>Recent content in 博客 on My New Hugo Site</description>
-    <generator>Hugo -- 0.157.0</generator>
-    <language>zh-CN</language>
-    <lastBuildDate>Sat, 07 Mar 2026 22:00:00 +0800</lastBuildDate>
-    <atom:link href="http://localhost:1313/tags/%E5%8D%9A%E5%AE%A2/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Hello World</title>
-      <link>http://localhost:1313/post/hello-world/</link>
-      <pubDate>Sat, 07 Mar 2026 22:00:00 +0800</pubDate>
-      <guid>http://localhost:1313/post/hello-world/</guid>
-      <description>&lt;h2 id=&#34;欢迎来到我的博客&#34;&gt;欢迎来到我的博客&lt;/h2&gt;
-&lt;p&gt;这是我的第一篇 Hugo 文章！&lt;/p&gt;</description>
-    </item>
-  </channel>
-</rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>博客 on Chenjx12's blog</title><link>https://chenjx12.github.io/tags/%E5%8D%9A%E5%AE%A2/</link><description>Recent content in 博客 on Chenjx12's blog</description><generator>Hugo -- 0.157.0</generator><language>zh-CN</language><lastBuildDate>Sat, 07 Mar 2026 22:00:00 +0800</lastBuildDate><atom:link href="https://chenjx12.github.io/tags/%E5%8D%9A%E5%AE%A2/index.xml" rel="self" type="application/rss+xml"/><item><title>Hello World</title><link>https://chenjx12.github.io/post/hello-world/</link><pubDate>Sat, 07 Mar 2026 22:00:00 +0800</pubDate><guid>https://chenjx12.github.io/post/hello-world/</guid><description>&lt;h2 id="欢迎来到我的博客"&gt;欢迎来到我的博客&lt;/h2&gt;
+&lt;p&gt;这是我的第一篇 Hugo 文章！&lt;/p&gt;</description></item></channel></rss>
