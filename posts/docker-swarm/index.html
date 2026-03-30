@@ -1,0 +1,751 @@
+<!doctype html><html lang=en dir=auto data-theme=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>docker swarm | Chenjx12's blog</title><meta name=keywords content="docker,运维,云原生"><meta name=description content="docker swarm"><meta name=author content="Chenjx12"><link rel=canonical href=https://chenjx12.github.io/posts/docker-swarm/><link crossorigin=anonymous href=/assets/css/stylesheet.199042e659bc7245f5609d333d6c044eb554a0640849bb874e1dff8eb0f57209.css integrity="sha256-GZBC5lm8ckX1YJ0zPWwETrVUoGQISbuHTh3/jrD1cgk=" rel="preload stylesheet" as=style><link rel=icon href=https://chenjx12.github.io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://chenjx12.github.io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://chenjx12.github.io/favicon-32x32.png><link rel=apple-touch-icon href=https://chenjx12.github.io/apple-touch-icon.png><link rel=mask-icon href=https://chenjx12.github.io/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=https://chenjx12.github.io/posts/docker-swarm/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51);color-scheme:dark}.list{background:var(--theme)}.toc{background:var(--entry)}}@media(prefers-color-scheme:light){.list::-webkit-scrollbar-thumb{border-color:var(--code-bg)}}</style></noscript><script>localStorage.getItem("pref-theme")==="dark"?document.querySelector("html").dataset.theme="dark":localStorage.getItem("pref-theme")==="light"?document.querySelector("html").dataset.theme="light":window.matchMedia("(prefers-color-scheme: dark)").matches?document.querySelector("html").dataset.theme="dark":document.querySelector("html").dataset.theme="light"</script><meta property="og:url" content="https://chenjx12.github.io/posts/docker-swarm/"><meta property="og:site_name" content="Chenjx12's blog"><meta property="og:title" content="docker swarm"><meta property="og:description" content="docker swarm"><meta property="og:locale" content="zh-CN"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2024-10-06T10:00:00+08:00"><meta property="article:modified_time" content="2024-10-06T10:00:00+08:00"><meta property="article:tag" content="Docker"><meta property="article:tag" content="运维"><meta property="article:tag" content="云原生"><meta name=twitter:card content="summary"><meta name=twitter:title content="docker swarm"><meta name=twitter:description content="docker swarm"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://chenjx12.github.io/posts/"},{"@type":"ListItem","position":2,"name":"docker swarm","item":"https://chenjx12.github.io/posts/docker-swarm/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"docker swarm","name":"docker swarm","description":"docker swarm","keywords":["docker","运维","云原生"],"articleBody":"Docker Swarm 学习来源：\n腾讯云 菜鸟教程 Swarm 简介 Docker Swarm 是 Docker 的集群管理工具。它将 Docker 主机池转变为单个虚拟 Docker 主机。 Docker Swarm 提供了标准的 Docker API，所有任何已经与 Docker 守护程序通信的工具都可以使用 Swarm 轻松地扩展到多个主机。\ndocker swarm：管理集群 # 初始化一个swarm docker swarm init [OPTIONS] # 选项： --advertise-addr string # 发布的地址（格式：[:port]） --force-new-cluster # 强制从当前状态创建一个新的集群（去除本地之外的所有管理器身份） --cert-expiry duration # 节点证书有效期(ns|us|ms|s|m|h)(默认为2160h0m0s) --data-path-addr string # 用于数据路径通信的地址或接口(格式: ) --data-path-port uint32 # 用于数据路径流量的端口号(1024 - 49151)。如果没有值，则默认端口号4789 --dispatcher-heartbeat duration # 调度程序的心跳周期(ns|us|ms|s|m|h)(默认为5s) --listen-addr node-addr # 监听地址(格式: [:port]) (默认 0.0.0.0:2377) # 查看加入节点到集群的命令及令牌(token) docker swarm join-token [OPTIONS] (worker|manager) # 选项： -q, --quiet # 只显示令牌 --rotate # 使旧令牌无效并生成新令牌 # 查看加入工作节点到集群的命令及令牌 docker swarm join-token worker # 查看加入管理节点到集群的命令及令牌 docker swarm join-token manager # 将节点加入swarm集群，作为一个manager或worker docker swarm join [OPTIONS] HOST:PORT # 选项： --advertise-addr string # 发布的地址 (格式: [:port]) --availability string # 节点的可用性 (\"active\"|\"pause\"|\"drain\") (default \"active\") --data-path-addr string # 用于数据路径通信的地址或接口 (格式: ) --listen-addr node-addr # 监听地址 (格式: [:port]) (default 0.0.0.0:2377) --token string # 进入的swarm集群的令牌 # 主动退出集群，让节点处于down状态（在需要退出Swarm集群的节点主机上执行命令） docker swarm leave [OPTIONS] # 选项： -f, --force # 强制。Manager若要退出 Swarm 集群，需要加上强制选项 ## 移除一个work-node节点主机的完整步骤： # 1.在管理节点上操作，清空work-node节点的容器。id 可以使用命令 docker node ls 查看 docker node update --availability drain [id] # 2.在work-node节点主机上操作，退出集群 docker swarm leave # 3，在管理节点上操作，删除work-node节点 docker node rm [id] # 若想解散整个集群，则需先移除所有work-node节点主机，然后所有管理节点也退出集群 # 更新 swarm 集群的配置 docker swarm update [OPTIONS] # 选项： --autolock # 更改管理器自动锁定设置(true|false) --cert-expiry duration # 节点证书有效期(ns|us|ms|s|m|h)(默认为2160h0m0s) --dispatcher-heartbeat duration # 调度程序心跳周期(ns|us|ms|s|m|h)(默认为5s) docker node：管理swarm集群节点 # 查看集群中的节点 docker node ls #选项： -f, --filter filter # 根据所提供的条件过滤输出。(格式：key=value) # 目前支持的过滤器是：id, label, name, membership[=accepted|pending] # , role[manager|worker] -q, --quiet # 只显示id # 查看运行的一个或多个及节点任务数，默认当前节点 docker node ps [OPTIONS] [NODE...] #选项： -f, --filter filter # 根据所提供的条件过滤输出 -q, --quiet # 只显示id # 将worker角色升级为manager docker node promote NODE [NODE...] # 将manager角色降级为worker docker node demote NODE [NODE...] # 查看节点的详细信息，默认json格式 docker node inspect 主机名 # 查看节点信息平铺格式 docker node inspect --pretty 主机名 # 从swarm中删除一个节点 docker node rm 主机名 # 从swarm中强制删除一个节点 docker node rm -f 主机名 # 更新一个节点 docker node update [options] 主机名 # 选项 --label-add list # 添加节点标签(key=value) --label-rm list # 删除节点标签 --role string # 更改节点角色 (\"worker\"|\"manager\") --availability active/pause/drain # 设置节点的状态 # active 正常 # pause 暂停。调度程序不向节点分配新任务，但是现有任务仍然保持运行 # drain 排除自身work任务。调度程序不向节点分配新任务，且会关闭任何现有任务并在可用节点上安排它们 docker service：服务管理 # 列出服务列表 docker service ls # 列出服务任务信息 docker service ps [OPTIONS] SERVICE [SERVICE...] # 选项： --no-trunc # 显示完整的信息 -f, --filter filter # 根据所提供的条件过滤输出。过滤只运行的任务信息：\"desired-state=running\" -q, --quiet # 只显示任务id # 查看服务内输出 docker service logs [OPTIONS] SERVICE|TASK # 选项： --details # 显示提供给日志的额外细节 -f, --follow # 跟踪日志输出 --since string # 显示自时间戳 (2013-01-02T13:23:37Z) 或相对时间戳 (42m for 42 minutes) 以来的日志 -n, --tail string # 从日志末尾显示的行数(默认为“all”) -t, --timestamps # 显示时间戳 # 更新服务的相关配置 docker service update [options] 服务名 # 选项 --args \"指令\" # 容器加入指令 --image IMAGE # 更新服务容器镜像 --rollback # 回滚服务容器版本 --network-add 网络名 # 添加容器网络 --network-rm 网络名 # 删除容器网络 --reserve-cpu int # 更新分配的cpu --reserve-memory bytes # 更新分配的内存(示例：512m) --publish-add 暴露端口:容器端口 # 映射容器端口到主机 --publish-rm 暴露端口:容器端口 # 移除暴露端口 --endpoint-mode dnsrr # 修改负载均衡模式为dnsrr --force # 强制重启服务 --config-rm 配置文件名称 # 删除配置文件 --constraint-add list # 新增一个约束 --constraint-rm list # 移除一个约束 --placement-pref-add pref # 新增一个偏好 --placement-pref-rm pref # 移除一个偏好 --config-add 配置文件名，target=/../容器内配置文件名 # 添加新的配置文件到容器内 # 查看服务详细信息，默认json格式 docker service inspect [OPTIONS] 服务名 [SERVICE...] # 查看服务信息平铺形式 docker service inspect --pretty 服务名 # 删除服务 docker service rm [OPTIONS] 服务名 [SERVICE...] # 缩容扩容服务容器副本数量 docker service scale 服务名=副本数 [SERVICE=REPLICAS...] # 创建一个服务。一般搭建好 Swarm 集群后，使用 docker stack 部署应用，此处仅作了解 docker service create [OPTIONS] IMAGE [COMMAND] [ARG...] # 选项： --name string # 指定容器名称 --replicas int # 指定副本数 --network 网络名 # 添加网络组 --mode string # 服务模式（复制或全局）(replicated | global) --reserve-cpu int # 预留的cpu --reserve-memory bytes # 预留的内存(512m) --limit-cpu int # 限制CPU --limit-memory bytes # 限制内存(512m) -l, --label list # 服务的标签(key=value) --container-label list # 容器标签(key=value) -p, --publish 暴露端口:容器端口 # 映射容器端口到主机 -e, --env MYVAR=myvalue # 配置环境变量 -w, --workdir string # 指定工作目录(示例：/tmp) -restart-condition string # 满足条件时重新启动（no | always | on-failure | unless-stopped） --restart-delay duration # 重新启动尝试之间的延迟 (ns/us/ms/s/m/h) --restart-max-attempts int # 放弃前的最大重启次数 --restart-window duration # 用于评估重启策略的窗口 (ns/us/ms/s/m/h) --stop-grace-period duration # 强制杀死容器前的等待时间 (ns/us/ms/s/m/h) --update-delay duration # 更新之间的延迟（ns/us/ms/s/m/h）（默认 0s） --update-failure-action string # 更新失败的操作（\"pause\"停止|\"continue\"继续）（默认pause） --update-max-failure-ratio float # 更新期间容忍的失败率 --update-monitor duration # 每次任务更新后监控失败的持续时间（ns/us/ms/s/m/h）（默认 0s） --update-parallelism int # 同时更新的最大任务数(0表示一次更新全部任务)(默认为1) --endpoint-mode string # 负载均衡模式(vip or dnsrr) (默认 \"vip\") --rollback-monitor 20s # 每次容器与容器之间的回滚时间间隔 --rollback-max-failure-ratio .数值 # 回滚故障率如果小于百分比允许运行（“.2”为%20） --mount type=volume,src=volume名称,dst=容器目录 # 创建volume类型数据卷 --mount type=bind,src=宿主目录,dst=容器目录 # 创建bind读写目录挂载 --mount type=bind,src=宿主目录,dst=容器目录,readonly # 创建bind只读目录挂载 --config source=docker配置文件,target=配置文件路径 # 创建docker配置文件到容器本地目录 docker secret：管理敏感数据存储 # 查看敏感数据卷列表 $ docker secret ls # 显示一个或多个敏感数据卷的详细信息 $ docker secret inspect [OPTIONS] SECRET [SECRET...] # 选项 --pretty # 易读的格式打印信息 # 从文件或标准输入创建一个敏感数据卷作为内容 $ docker secret create [OPTIONS] SECRET [file|-] # 选项 -d, --driver string # 指定驱动 -l, --label list # 指定标签 --template-driver string # 指定模板驱动程序 # 移除一个或多个敏感数据卷 $ docker secret rm SECRET [SECRET...] # 别名：rm, remove docker config：管理配置文件 # 查看已创建配置文件 docker config ls [OPTIONS] # 选项： -f, --filter filter # 根据所提供的条件过滤输出 -q, --quiet # 只显示id # 查看配置详细信息 docker config inspect 配置文件名 # 删除配置 docker config rm CONFIG [CONFIG...] # 创建配置文件 docker config create 配置文件名 本地配置文件 # 示例：新建配置文件并添加新配置文件到服务 # 1.创建配置文件 docker config create nginx2_config nginx2.conf # 2.删除旧配置文件 docker service update --config-rm ce_nginx_config 服务名 # 3.添加新配置文件到服务 docker service update --config-add src=nginx2_config,target=/etc/nginx/nginx.conf ce_nginx docker network: 网络信息 # 查看集群网络列表 docker network ls # 将容器连接到集群网络中 $ docker network connect [OPTIONS] NETWORK CONTAINER # 选项 --alias strings # 为容器添加网络范围的别名 --driver-opt string · # 指定网络驱动程序 --ip string # 指定IPv4地址(如172.30.100.104) --ip6 string # 指定IPv6地址(例如，2001:db8::33) --link list # 添加到另一个容器的链接 --link-local-ip string # 为容器添加一个链接本地地址 # 示例 docker network connect mynet nginx # 断开一个容器与集群网络的连接 $ docker network disconnect [OPTIONS] NETWORK CONTAINER # 选项 -f, --force # 强制容器从网络断开连接 # 显示一个或多个集群网络的详细信息 $ docker network inspect [OPTIONS] NETWORK [NETWORK...] # 选项 -f, --format string # 使用给定的Go模板格式化输出 -v, --verbose # 输出详细的诊断信息 # 创建一个集群网络 $ docker network create [OPTIONS] NETWORK # 选项 --attachable # 准许手动容器连接 --aux-address map # 网络驱动使用的辅助IPv4或IPv6地址(默认映射[]) --config-from string # 要从其中复制配置的网络 --config-only # 创建仅配置网络 -d, --driver string # 管理网络的驱动程序(默认为“\"bridge”)。选项：bridge、overlay、macvlan --gateway strings # 指定IPv4或IPv6主子网网关。示例：172.20.0.1 --ingress # 创建群路由-网格网络 --internal # 限制外部访问网络 --ip-range strings # 从子范围分配容器ip --ipam-driver string # IP管理驱动(默认为“default”) --ipam-opt map # 设置IPAM驱动程序的特定选项(默认map[]) --ipv6 # 启用IPv6网络 --label list # 在网络中设置元数据 -o, --opt map # 设置驱动程序特定选项(默认map[]) --scope string # 控制网络的范围 --subnet strings # 指定一个CIDR格式的网段。示例：172.20.0.0/24 # 示例： docker network create -d overlay --attachable apps_net # 移除所有未使用的集群网络 $ docker network prune [OPTIONS] # 选项 --filter filter # 提供过滤值(e.g. 'until=') -f, --force # 强制，没有提示确认 # 删除一个或多个集群网络 $ docker network rm NETWORK [NETWORK...] # 别名：rm, remove 开始配置 环境准备\n1、修改主机名 2、配置IP地址 3、关闭防火墙和SELINUX安全模式 4、配置系统YUM源和Docker镜像源 5、更新系统（yum update -y） 6、安装好docker环境\n初始化集群 docker swarm init --advertise-addr 192.168.65.148 root@chenjx12-0:~# docker swarm init --advertise-addr 192.168.65.148 Swarm initialized: current node (1e0chr8bpn27vlq9g056zy7a2) is now a manager. To add a worker to this swarm, run the following command: docker swarm join --token SWMTKN-1-10u0nu575ou6thien8kscddxebzsnatljdytcas3n9sgin5jog-9cu9j19pfitelu1oap7rgdlub 192.168.65.148:2377 To add a manager to this swarm, run 'docker swarm join-token manager' and follow the instructions. root@chenjx12-0:~# docker swarm join-token manager To add a manager to this swarm, run the following command: docker swarm join --token SWMTKN-1-10u0nu575ou6thien8kscddxebzsnatljdytcas3n9sgin5jog-ejpgz6tdq0xsm3c6qjrstq299 192.168.65.148:2377 让其他节点加入集群 root@chenjx12-0:~# docker node ls ID HOSTNAME STATUS AVAILABILITY MANAGER STATUS ENGINE VERSION 1e0chr8bpn27vlq9g056zy7a2 * chenjx12-0 Ready Active Leader 27.3.1 jb55cgd88n5tl2ybdokhznq1t chenjx12-1 Ready Active 27.3.1 oav94gisk9wm4mfuqvzpfhqzh chenjx12-2 Ready Active 27.3.1 g6vxdk2myltc9i9lwx1zr3s4i chenjx12-3 Ready Active 27.3.1 查看详细情况 root@chenjx12-0:~# docker info Client: Docker Engine - Community Version: 27.3.1 Context: default Debug Mode: false Plugins: buildx: Docker Buildx (Docker Inc.) Version: v0.17.1 Path: /usr/libexec/docker/cli-plugins/docker-buildx compose: Docker Compose (Docker Inc.) Version: v2.29.7 Path: /usr/libexec/docker/cli-plugins/docker-compose Server: Containers: 0 Running: 0 Paused: 0 Stopped: 0 Images: 0 Server Version: 27.3.1 Storage Driver: overlay2 Backing Filesystem: extfs Supports d_type: true Using metacopy: false Native Overlay Diff: true userxattr: false Logging Driver: json-file Cgroup Driver: systemd Cgroup Version: 2 Plugins: Volume: local Network: bridge host ipvlan macvlan null overlay Log: awslogs fluentd gcplogs gelf journald json-file local splunk syslog Swarm: active NodeID: 1e0chr8bpn27vlq9g056zy7a2 Is Manager: true ClusterID: ye2nnvev8mzdyv0g56ee0ka6w Managers: 1 Nodes: 4 Data Path Port: 4789 Orchestration: Task History Retention Limit: 5 Raft: Snapshot Interval: 10000 Number of Old Snapshots to Retain: 0 Heartbeat Tick: 1 Election Tick: 10 Dispatcher: Heartbeat Period: 5 seconds CA Configuration: Expiry Duration: 3 months Force Rotate: 0 Autolock Managers: false Root Rotation In Progress: false Node Address: 192.168.65.148 Manager Addresses: 192.168.65.148:2377 Runtimes: io.containerd.runc.v2 runc Default Runtime: runc Init Binary: docker-init containerd version: 7f7fdf5fed64eb6a7caf99b3e12efcf9d60e311c runc version: v1.1.14-0-g2c9f560 init version: de40ad0 Security Options: apparmor seccomp Profile: builtin cgroupns Kernel Version: 6.1.0-26-amd64 Operating System: Debian GNU/Linux 12 (bookworm) OSType: linux Architecture: x86_64 CPUs: 4 Total Memory: 1.887GiB Name: chenjx12-0 ID: 8d684424-29b4-4611-8a59-d4ce19b0f9da Docker Root Dir: /var/lib/docker Debug Mode: false Experimental: false Insecure Registries: 127.0.0.0/8 Live Restore Enabled: false WARNING: bridge-nf-call-iptables is disabled WARNING: bridge-nf-call-ip6tables is disabled 查看网络信息 root@chenjx12-0:~# docker network ls NETWORK ID NAME DRIVER SCOPE a162d4d5a77e bridge bridge local 1f622764003c docker_gwbridge bridge local 8f11bd442416 host host local d8isx3sccunf ingress overlay swarm 3b8eea1a0902 none null local root@chenjx12-0:~# docker network inspect d8isx3sccunf [ { \"Name\": \"ingress\", \"Id\": \"d8isx3sccunf33xeb63c1v21x\", \"Created\": \"2024-10-28T19:50:32.014998441+08:00\", \"Scope\": \"swarm\", \"Driver\": \"overlay\", \"EnableIPv6\": false, \"IPAM\": { \"Driver\": \"default\", \"Options\": null, \"Config\": [ { \"Subnet\": \"10.0.0.0/24\", \"Gateway\": \"10.0.0.1\" } ] }, \"Internal\": false, \"Attachable\": false, \"Ingress\": true, \"ConfigFrom\": { \"Network\": \"\" }, \"ConfigOnly\": false, \"Containers\": { \"ingress-sbox\": { \"Name\": \"ingress-endpoint\", \"EndpointID\": \"f2dd609d5bc4ba0cb7206b7e4bdc3cd1ba232d727841b693805eecd1b591f7b9\", \"MacAddress\": \"02:42:0a:00:00:02\", \"IPv4Address\": \"10.0.0.2/24\", \"IPv6Address\": \"\" } }, \"Options\": { \"com.docker.network.driver.overlay.vxlanid_list\": \"4096\" }, \"Labels\": {}, \"Peers\": [ { \"Name\": \"b4947f7ebf00\", \"IP\": \"192.168.65.148\" }, { \"Name\": \"bac21fa67653\", \"IP\": \"192.168.65.154\" }, { \"Name\": \"d6c037335dd0\", \"IP\": \"192.168.65.155\" }, { \"Name\": \"3b5f5c73c94c\", \"IP\": \"192.168.65.152\" } ] } ] 更换节点的角色（manager – worker） root@chenjx12-0:~# docker node update -h Flag shorthand -h has been deprecated, use --help Usage: docker node update [OPTIONS] NODE Update a node Options: --availability string Availability of the node (\"active\", \"pause\", \"drain\") --label-add list Add or update a node label (\"key=value\") --label-rm list Remove a node label if exists --role string Role of the node (\"worker\", \"manager\") root@chenjx12-0:~# docker node update --role manager chenjx12-1 chenjx12-1 root@chenjx12-0:~# docker node ls ID HOSTNAME STATUS AVAILABILITY MANAGER STATUS ENGINE VERSION 1e0chr8bpn27vlq9g056zy7a2 * chenjx12-0 Ready Active Leader 27.3.1 jb55cgd88n5tl2ybdokhznq1t chenjx12-1 Ready Active Reachable 27.3.1 oav94gisk9wm4mfuqvzpfhqzh chenjx12-2 Ready Active 27.3.1 g6vxdk2myltc9i9lwx1zr3s4i chenjx12-3 Ready Active 27.3.1 root@chenjx12-0:~# docker node update --role worker chenjx12-1 chenjx12-1 root@chenjx12-0:~# docker node ls ID HOSTNAME STATUS AVAILABILITY MANAGER STATUS ENGINE VERSION 1e0chr8bpn27vlq9g056zy7a2 * chenjx12-0 Ready Active Leader 27.3.1 jb55cgd88n5tl2ybdokhznq1t chenjx12-1 Ready Active 27.3.1 oav94gisk9wm4mfuqvzpfhqzh chenjx12-2 Ready Active 27.3.1 g6vxdk2myltc9i9lwx1zr3s4i chenjx12-3 Ready Active 27.3.1 节点退出集群 在3号节点上使用命令，回到0号节点发现3号节点下线了（down）\nroot@chenjx12-0:~# docker swarm leave -h Flag shorthand -h has been deprecated, use --help Usage: docker swarm leave [OPTIONS] Leave the swarm Options: -f, --force Force this node to leave the swarm, ignoring warnings root@chenjx12-3:~# docker swarm leave -f Node left the swarm. root@chenjx12-0:~# docker node ls ID HOSTNAME STATUS AVAILABILITY MANAGER STATUS ENGINE VERSION 1e0chr8bpn27vlq9g056zy7a2 * chenjx12-0 Ready Active Leader 27.3.1 jb55cgd88n5tl2ybdokhznq1t chenjx12-1 Ready Active 27.3.1 oav94gisk9wm4mfuqvzpfhqzh chenjx12-2 Ready Active 27.3.1 g6vxdk2myltc9i9lwx1zr3s4i chenjx12-3 Down Active 27.3.1 删除节点 docker node rm [id] 注意，删除节点无法删除manager管理节点，需要先--role worker，才能rm\n服务部署 查看help\nroot@chenjx12-0:~# docker service Usage: docker service COMMAND Manage Swarm services Commands: create Create a new service inspect Display detailed information on one or more services logs Fetch the logs of a service or task ls List services ps List the tasks of one or more services rm Remove one or more services rollback Revert changes to a service's configuration scale Scale one or multiple replicated services update Update a service Run 'docker service COMMAND --help' for more information on a command. 先在leader上pull一个nginx root@chenjx12-0:/etc/docker# docker pull nginx Using default tag: latest latest: Pulling from library/nginx a480a496ba95: Pull complete f3ace1b8ce45: Pull complete 11d6fdd0e8a7: Pull complete f1091da6fd5c: Pull complete 40eea07b53d8: Pull complete 6476794e50f4: Pull complete 70850b3ec6b2: Pull complete Digest: sha256:28402db69fec7c17e179ea87882667f1e054391138f77ffaf0c3eb388efc3ffb Status: Downloaded newer image for nginx:latest docker.io/library/nginx:latest 使用service命令启动Nginx root@chenjx12-0:~# docker service create -p 8888:80 --name xybdiy-nginx nginx qvx9t2qskhr8g0r1i7y5f9ub9 overall progress: 1 out of 1 tasks 1/1: running [==================================================\u003e] verify: Service qvx9t2qskhr8g0r1i7y5f9ub9 converged 使用docker services创建服务，具有扩缩容，滚动更新\n查看服务 root@chenjx12-0:~# docker service ls ID NAME MODE REPLICAS IMAGE PORTS qvx9t2qskhr8 xybdiy-nginx replicated 1/1 nginx:latest *:8888-\u003e80/tcp root@chenjx12-0:~# docker service ps xybdiy-nginx ID NAME IMAGE NODE DESIRED STATE CURRENT STATE ERROR PORTS 7jzyf300ygqh xybdiy-nginx.1 nginx:latest chenjx12-1 Running Running about a minute ago root@chenjx12-0:~# docker ps CONTAINER ID IMAGE COMMAND CREATED STATUS PORTS NAMES root@chenjx12-1:~# docker ps CONTAINER ID IMAGE COMMAND CREATED STATUS PORTS NAMES 1efdebcefcd0 nginx:latest \"/docker-entrypoint.…\" 2 minutes ago Up 2 minutes 80/tcp xybdiy-nginx.1.7jzyf300ygqhnj8zfukkjmrtp root@chenjx12-0:~# docker service inspect xybdiy-nginx [ { \"ID\": \"qvx9t2qskhr8g0r1i7y5f9ub9\", \"Version\": { \"Index\": 76 }, \"CreatedAt\": \"2024-10-28T13:46:32.118348646Z\", \"UpdatedAt\": \"2024-10-28T13:46:32.127340473Z\", \"Spec\": { \"Name\": \"xybdiy-nginx\", \"Labels\": {}, \"TaskTemplate\": { \"ContainerSpec\": { \"Image\": \"nginx:latest@sha256:28402db69fec7c17e179ea87882667f1e054391138f77ffaf0c3eb388efc3ffb\", \"Init\": false, \"StopGracePeriod\": 10000000000, \"DNSConfig\": {}, \"Isolation\": \"default\" }, \"Resources\": { \"Limits\": {}, \"Reservations\": {} }, \"RestartPolicy\": { \"Condition\": \"any\", \"Delay\": 5000000000, \"MaxAttempts\": 0 }, \"Placement\": { \"Platforms\": [ { \"Architecture\": \"amd64\", \"OS\": \"linux\" }, { \"Architecture\": \"unknown\", \"OS\": \"unknown\" }, { \"OS\": \"linux\" }, { \"Architecture\": \"unknown\", \"OS\": \"unknown\" }, { \"OS\": \"linux\" }, { \"Architecture\": \"unknown\", \"OS\": \"unknown\" }, { \"Architecture\": \"arm64\", \"OS\": \"linux\" }, { \"Architecture\": \"unknown\", \"OS\": \"unknown\" }, { \"Architecture\": \"386\", \"OS\": \"linux\" }, { \"Architecture\": \"unknown\", \"OS\": \"unknown\" }, { \"Architecture\": \"mips64le\", \"OS\": \"linux\" }, { \"Architecture\": \"unknown\", \"OS\": \"unknown\" }, { \"Architecture\": \"ppc64le\", \"OS\": \"linux\" }, { \"Architecture\": \"unknown\", \"OS\": \"unknown\" }, { \"Architecture\": \"s390x\", \"OS\": \"linux\" }, { \"Architecture\": \"unknown\", \"OS\": \"unknown\" } ] }, \"ForceUpdate\": 0, \"Runtime\": \"container\" }, \"Mode\": { \"Replicated\": { \"Replicas\": 1 } }, \"UpdateConfig\": { \"Parallelism\": 1, \"FailureAction\": \"pause\", \"Monitor\": 5000000000, \"MaxFailureRatio\": 0, \"Order\": \"stop-first\" }, \"RollbackConfig\": { \"Parallelism\": 1, \"FailureAction\": \"pause\", \"Monitor\": 5000000000, \"MaxFailureRatio\": 0, \"Order\": \"stop-first\" }, \"EndpointSpec\": { \"Mode\": \"vip\", \"Ports\": [ { \"Protocol\": \"tcp\", \"TargetPort\": 80, \"PublishedPort\": 8888, \"PublishMode\": \"ingress\" } ] } }, \"Endpoint\": { \"Spec\": { \"Mode\": \"vip\", \"Ports\": [ { \"Protocol\": \"tcp\", \"TargetPort\": 80, \"PublishedPort\": 8888, \"PublishMode\": \"ingress\" } ] }, \"Ports\": [ { \"Protocol\": \"tcp\", \"TargetPort\": 80, \"PublishedPort\": 8888, \"PublishMode\": \"ingress\" } ], \"VirtualIPs\": [ { \"NetworkID\": \"d8isx3sccunf33xeb63c1v21x\", \"Addr\": \"10.0.0.5/24\" } ] } } ] 可以看到该服务被部署到1号节点上，0节点本地docker ps是没有的，而1节点下出现了该服务\n多个部署，动态扩容 root@chenjx12-0:~# docker service update --replicas 2 xybdiy-nginx xybdiy-nginx overall progress: 2 out of 2 tasks 1/2: running [==================================================\u003e] 2/2: running [==================================================\u003e] verify: Service xybdiy-nginx converged 由于第一个服务前面已经部署在1号节点上了，所以这次只需要再部署一个\nroot@chenjx12-0:~# docker service ls ID NAME MODE REPLICAS IMAGE PORTS qvx9t2qskhr8 xybdiy-nginx replicated 2/2 nginx:latest *:8888-\u003e80/tcp root@chenjx12-0:~# docker service ps xybdiy-nginx ID NAME IMAGE NODE DESIRED STATE CURRENT STATE ERROR PORTS 7jzyf300ygqh xybdiy-nginx.1 nginx:latest chenjx12-1 Running Running 9 minutes ago i5m1yshi8p8o xybdiy-nginx.2 nginx:latest chenjx12-0 Running Running 2 minutes ago 可以看到这次部署到了0号和1号两个节点上，但是注意啊：\n1号节点本身是worker，用来运行和部署服务是没问题的\n但是0号节点原来是manager呀，甚至还是leader\n所以，再次查看节点信息会发现：\nroot@chenjx12-0:~# docker node ls ID HOSTNAME STATUS AVAILABILITY MANAGER STATUS ENGINE VERSION 1e0chr8bpn27vlq9g056zy7a2 * chenjx12-0 Ready Active Reachable 27.3.1 jb55cgd88n5tl2ybdokhznq1t chenjx12-1 Ready Active 27.3.1 oav94gisk9wm4mfuqvzpfhqzh chenjx12-2 Ready Active 27.3.1 u6x1nn2xjqsfchbtlegne7swf chenjx12-3 Ready Active Leader 27.3.1 leader被转移到另一个manager节点（3号）上了\n在Docker Swarm集群中，如果当前的leader节点变得不可用或者其资源不足以运行新的任务，leadership（领导权）会自动转移到另一个manager节点上。这是Swarm集群的高可用特性之一。\n在您描述的场景中，如果有一个manager节点被部署了nginx服务，并且这个manager节点恰好是当前的leader，以下情况可能会发生：\n如果该manager节点只是被分配了nginx服务，并且它仍然能够处理manager节点的职责，那么它仍然可以保持leader的角色。 如果部署nginx服务导致该manager节点过载，或者由于某些原因它变得不可用（比如网络问题、硬件故障等），Swarm集群会检测到这个问题，并进行以下操作： 集群中的其他manager节点会通过raft协议选举出一个新的leader。 leadership将从当前不可用的manager节点转移到新的leader节点上。 为了确保Swarm集群的稳定性和高可用性，通常建议将manager节点专用于管理任务，而不要在它们上面运行worker任务。这样可以确保manager节点有足够的资源来处理集群管理和决策任务，即使在节点故障的情况下也能保持集群的稳定运行。\n如果您确实需要在manager节点上运行服务，可以通过以下策略来降低风险：\n限制在manager节点上运行的服务数量，确保它们不会消耗过多资源。 使用资源限制和预留，确保manager节点有足够的资源来执行其管理职责。 如果我们需要保持manager节点不要运行服务，专心管理worker，并且避免leader转移，我们可以使用下面的命令\ndocker service create \\ --name my_nginx \\ --constraint 'node.role != manager' \\ nginx 如果我们要更具体一点，限制它不会部署在某个节点上：\n使用节点ip限制 docker service create \\ --name my_nginx \\ --constraint 'node.id != node_id' \\ nginx 使用节点名称限制 docker service create \\ --name my_nginx \\ --constraint 'node.hostname != node_name' \\ nginx 虽然看上去是只部署在了0号和1号节点，但是实际上你访问集群中任意一个ip的8888端口都能够看到nginx页面\n这就是swarm集群的负载均衡\n故障 前面可以知道，虽然我部署只在两个服务器上但是我访问集群中任意一个ip都能得到服务\n那如果我某个，或者多个服务器挂了呢\n首先，我把所有的（两个）manager挂了\n得到的结果是：访问剩下两个worker节点的ip均能得到服务，但是manager不行\n我把一个manager和一个woker挂了\n得到的结果是：还是能访问到，但是挂了的不行\n并且最后的manager报错：\nroot@chenjx12-3:~# docker node ls Error response from daemon: rpc error: code = Unknown desc = The swarm does not have a leader. It’s possible that too few managers are online. Make sure more than half of the managers are online.\n把两个worker都挂掉\n结果是：也是仅存活的两个才能访问，但是使用docker node ls指令不会报错了\n所有就引出了我们swarm集群的节点管理规则：\nDocker Swarm集群节点规划 为了利用 swarm 模式的容错功能，可以根据组织的高可用性要求实现奇数个节点。 当有多个管理中心时，可以从一个管理中心节点的故障中恢复，而无需停机。\n三个管理器群可以容忍最多损失一个管理器。 五个管理器群最多可以同时丢失两个管理器节点。 七个管理器群最多可以同时丢失三个管理器节点。 九个管理器群最多可以同时丢失四个管理器节点。 Docker 建议一个群最多有七个管理器节点。 （添加更多管理器并不意味着可伸缩性或性能的提高。一般来说，情况恰恰相反。） ","wordCount":"2400","inLanguage":"en","datePublished":"2024-10-06T10:00:00+08:00","dateModified":"2024-10-06T10:00:00+08:00","author":{"@type":"Person","name":"Chenjx12"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://chenjx12.github.io/posts/docker-swarm/"},"publisher":{"@type":"Organization","name":"Chenjx12's blog","logo":{"@type":"ImageObject","url":"https://chenjx12.github.io/favicon.ico"}}}</script></head><body id=top><header class=header><nav class=nav><div class=logo><a href=https://chenjx12.github.io/ accesskey=h title="Chenjx12's blog (Alt + H)">Chenjx12's blog</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
+<svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+<svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://chenjx12.github.io/ title=首页><span>首页</span></a></li><li><a href=https://chenjx12.github.io/posts/ title=文章><span>文章</span></a></li><li><a href=https://chenjx12.github.io/tags/ title=标签><span>标签</span></a></li><li><a href=https://chenjx12.github.io/archives/ title=归档><span>归档</span></a></li><li><a href=https://chenjx12.github.io/search/ title="搜索 (Alt + /)" accesskey=/><span>搜索</span></a></li><li><a href=https://chenjx12.github.io/about/ title=关于><span>关于</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><div class=breadcrumbs><a href=https://chenjx12.github.io/>Home</a>&nbsp;»&nbsp;<a href=https://chenjx12.github.io/posts/>Posts</a></div><h1 class="post-title entry-hint-parent">docker swarm</h1><div class=post-description>docker swarm</div><div class=post-meta><span title='2024-10-06 10:00:00 +0800 +0800'>October 6, 2024</span>&nbsp;·&nbsp;<span>12 min</span>&nbsp;·&nbsp;<span>2400 words</span>&nbsp;·&nbsp;<span>Chenjx12</span></div></header><div class=toc><details open><summary accesskey=c title="(Alt + C)"><span class=details>Table of Contents</span></summary><div class=inner><ul><li><a href=#docker-swarm aria-label="Docker Swarm">Docker Swarm</a><ul><li><a href=#swarm-%e7%ae%80%e4%bb%8b aria-label="Swarm 简介">Swarm 简介</a></li><li><a href=#docker-swarm%e7%ae%a1%e7%90%86%e9%9b%86%e7%be%a4 aria-label="docker swarm：管理集群">docker swarm：管理集群</a></li><li><a href=#docker-node%e7%ae%a1%e7%90%86swarm%e9%9b%86%e7%be%a4%e8%8a%82%e7%82%b9 aria-label="docker node：管理swarm集群节点">docker node：管理swarm集群节点</a></li><li><a href=#docker-service%e6%9c%8d%e5%8a%a1%e7%ae%a1%e7%90%86 aria-label="docker service：服务管理">docker service：服务管理</a></li><li><a href=#docker-secret%e7%ae%a1%e7%90%86%e6%95%8f%e6%84%9f%e6%95%b0%e6%8d%ae%e5%ad%98%e5%82%a8 aria-label="docker secret：管理敏感数据存储">docker secret：管理敏感数据存储</a></li><li><a href=#docker-config%e7%ae%a1%e7%90%86%e9%85%8d%e7%bd%ae%e6%96%87%e4%bb%b6 aria-label="docker config：管理配置文件">docker config：管理配置文件</a></li><li><a href=#docker-network-%e7%bd%91%e7%bb%9c%e4%bf%a1%e6%81%af aria-label="docker network: 网络信息">docker network: 网络信息</a></li><li><a href=#%e5%bc%80%e5%a7%8b%e9%85%8d%e7%bd%ae aria-label=开始配置>开始配置</a><ul><li><a href=#%e5%88%9d%e5%a7%8b%e5%8c%96%e9%9b%86%e7%be%a4 aria-label=初始化集群>初始化集群</a></li><li><a href=#%e8%ae%a9%e5%85%b6%e4%bb%96%e8%8a%82%e7%82%b9%e5%8a%a0%e5%85%a5%e9%9b%86%e7%be%a4 aria-label=让其他节点加入集群>让其他节点加入集群</a></li><li><a href=#%e6%9f%a5%e7%9c%8b%e8%af%a6%e7%bb%86%e6%83%85%e5%86%b5 aria-label=查看详细情况>查看详细情况</a></li><li><a href=#%e6%9f%a5%e7%9c%8b%e7%bd%91%e7%bb%9c%e4%bf%a1%e6%81%af aria-label=查看网络信息>查看网络信息</a></li><li><a href=#%e6%9b%b4%e6%8d%a2%e8%8a%82%e7%82%b9%e7%9a%84%e8%a7%92%e8%89%b2manager--worker aria-label="更换节点的角色（manager &ndash; worker）">更换节点的角色（manager &ndash; worker）</a></li><li><a href=#%e8%8a%82%e7%82%b9%e9%80%80%e5%87%ba%e9%9b%86%e7%be%a4 aria-label=节点退出集群>节点退出集群</a></li><li><a href=#%e5%88%a0%e9%99%a4%e8%8a%82%e7%82%b9 aria-label=删除节点>删除节点</a></li></ul></li><li><a href=#%e6%9c%8d%e5%8a%a1%e9%83%a8%e7%bd%b2 aria-label=服务部署>服务部署</a><ul><li><a href=#%e5%85%88%e5%9c%a8leader%e4%b8%8apull%e4%b8%80%e4%b8%aanginx aria-label=先在leader上pull一个nginx>先在leader上pull一个nginx</a></li><li><a href=#%e4%bd%bf%e7%94%a8service%e5%91%bd%e4%bb%a4%e5%90%af%e5%8a%a8nginx aria-label=使用service命令启动Nginx>使用service命令启动Nginx</a></li><li><a href=#%e6%9f%a5%e7%9c%8b%e6%9c%8d%e5%8a%a1 aria-label=查看服务>查看服务</a></li><li><a href=#%e5%a4%9a%e4%b8%aa%e9%83%a8%e7%bd%b2%e5%8a%a8%e6%80%81%e6%89%a9%e5%ae%b9 aria-label=多个部署，动态扩容>多个部署，动态扩容</a></li></ul></li><li><a href=#%e6%95%85%e9%9a%9c aria-label=故障>故障</a><ul><li><a href=#docker-swarm%e9%9b%86%e7%be%a4%e8%8a%82%e7%82%b9%e8%a7%84%e5%88%92 aria-label="Docker Swarm集群节点规划">Docker Swarm集群节点规划</a></li></ul></li></ul></li></ul></div></details></div><div class=post-content><h1 id=docker-swarm>Docker Swarm<a hidden class=anchor aria-hidden=true href=#docker-swarm>#</a></h1><p>学习来源：</p><ul><li><a href=https://cloud.tencent.com/developer/article/2192062>腾讯云</a></li><li><a href=https://www.runoob.com/docker/docker-swarm.html>菜鸟教程</a></li></ul><h2 id=swarm-简介>Swarm 简介<a hidden class=anchor aria-hidden=true href=#swarm-简介>#</a></h2><p>Docker Swarm 是 Docker 的集群管理工具。它将 Docker 主机池转变为单个虚拟 Docker 主机。 Docker Swarm 提供了标准的 Docker API，所有任何已经与 Docker 守护程序通信的工具都可以使用 Swarm 轻松地扩展到多个主机。</p><p><img alt="Swarm 架构" loading=lazy src=https://raw.githubusercontent.com/Chenjx12/PicGO/main/img/20260330220534418.png></p><h2 id=docker-swarm管理集群>docker swarm：管理集群<a hidden class=anchor aria-hidden=true href=#docker-swarm管理集群>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span><span style=color:#75715e># 初始化一个swarm</span>
+</span></span><span style=display:flex><span>docker swarm init [OPTIONS]
+</span></span><span style=display:flex><span><span style=color:#75715e># 选项：</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>advertise<span style=color:#f92672>-</span>addr string     <span style=color:#75715e># 发布的地址（格式：&lt;ip|interface&gt;[:port]）</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>force<span style=color:#f92672>-</span><span style=color:#66d9ef>new</span><span style=color:#f92672>-</span>cluster         <span style=color:#75715e># 强制从当前状态创建一个新的集群（去除本地之外的所有管理器身份）</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>cert<span style=color:#f92672>-</span>expiry duration      <span style=color:#75715e># 节点证书有效期(ns|us|ms|s|m|h)(默认为2160h0m0s)</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>data<span style=color:#f92672>-</span>path<span style=color:#f92672>-</span>addr string     <span style=color:#75715e># 用于数据路径通信的地址或接口(格式: &lt;ip|interface&gt;)</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>data<span style=color:#f92672>-</span>path<span style=color:#f92672>-</span>port uint32     <span style=color:#75715e># 用于数据路径流量的端口号(1024 - 49151)。如果没有值，则默认端口号4789</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>dispatcher<span style=color:#f92672>-</span>heartbeat duration     <span style=color:#75715e># 调度程序的心跳周期(ns|us|ms|s|m|h)(默认为5s)</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>listen<span style=color:#f92672>-</span>addr node<span style=color:#f92672>-</span>addr     <span style=color:#75715e># 监听地址(格式: &lt;ip|interface&gt;[:port]) (默认 0.0.0.0:2377)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 查看加入节点到集群的命令及令牌(token)</span>
+</span></span><span style=display:flex><span>docker swarm join<span style=color:#f92672>-</span>token [OPTIONS] (worker<span style=color:#f92672>|</span>manager)
+</span></span><span style=display:flex><span><span style=color:#75715e># 选项：</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span><span style=color:#e6db74>q, --quiet    # 只显示令牌
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    --rotate   # 使旧令牌无效并生成新令牌
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># 查看加入工作节点到集群的命令及令牌
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>docker swarm join-token worker
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># 查看加入管理节点到集群的命令及令牌
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>docker swarm join-token manager
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># 将节点加入swarm集群，作为一个manager或worker
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>docker swarm join [OPTIONS] HOST:PORT
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># 选项：
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>--advertise-addr string   # 发布的地址 (格式: &lt;ip|interface&gt;[:port])
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>--availability string     # 节点的可用性 (&#34;active&#34;|&#34;pause&#34;|&#34;drain&#34;) (default &#34;active&#34;)
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>--data-path-addr string   # 用于数据路径通信的地址或接口 (格式: &lt;ip|interface&gt;)
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>--listen-addr node-addr   # 监听地址 (格式: &lt;ip|interface&gt;[:port]) (default 0.0.0.0:2377)
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>--token string            # 进入的swarm集群的令牌     
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># 主动退出集群，让节点处于down状态（在需要退出Swarm集群的节点主机上执行命令）
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>docker swarm leave [OPTIONS]
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># 选项：
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>-f,</span> <span style=color:#f92672>--</span>force     <span style=color:#75715e># 强制。Manager若要退出 Swarm 集群，需要加上强制选项</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>## 移除一个work-node节点主机的完整步骤：</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 1.在管理节点上操作，清空work-node节点的容器。id 可以使用命令 docker node ls 查看</span>
+</span></span><span style=display:flex><span>docker node update <span style=color:#f92672>--</span>availability drain [id]
+</span></span><span style=display:flex><span><span style=color:#75715e># 2.在work-node节点主机上操作，退出集群</span>
+</span></span><span style=display:flex><span>docker swarm leave
+</span></span><span style=display:flex><span><span style=color:#75715e># 3，在管理节点上操作，删除work-node节点</span>
+</span></span><span style=display:flex><span>docker node rm [id]
+</span></span><span style=display:flex><span><span style=color:#75715e># 若想解散整个集群，则需先移除所有work-node节点主机，然后所有管理节点也退出集群</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 更新 swarm 集群的配置</span>
+</span></span><span style=display:flex><span>docker swarm update [OPTIONS]
+</span></span><span style=display:flex><span><span style=color:#75715e># 选项：</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>autolock                          <span style=color:#75715e># 更改管理器自动锁定设置(true|false)</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>cert<span style=color:#f92672>-</span>expiry duration              <span style=color:#75715e># 节点证书有效期(ns|us|ms|s|m|h)(默认为2160h0m0s)</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>dispatcher<span style=color:#f92672>-</span>heartbeat duration     <span style=color:#75715e># 调度程序心跳周期(ns|us|ms|s|m|h)(默认为5s)</span>
+</span></span></code></pre></div><h2 id=docker-node管理swarm集群节点>docker node：管理swarm集群节点<a hidden class=anchor aria-hidden=true href=#docker-node管理swarm集群节点>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span><span style=color:#75715e># 查看集群中的节点</span>
+</span></span><span style=display:flex><span>docker node ls
+</span></span><span style=display:flex><span><span style=color:#75715e>#选项：</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span>f, <span style=color:#f92672>--</span>filter filter     <span style=color:#75715e># 根据所提供的条件过滤输出。(格式：key=value)</span>
+</span></span><span style=display:flex><span>                            <span style=color:#75715e># 目前支持的过滤器是：id, label, name, membership[=accepted|pending]</span>
+</span></span><span style=display:flex><span>                                               <span style=color:#75715e># , role[manager|worker]</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span><span style=color:#e6db74>q, --quiet             # 只显示id
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># 查看运行的一个或多个及节点任务数，默认当前节点
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>docker node ps [OPTIONS] [NODE...]
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>#选项：
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>-f,</span> <span style=color:#f92672>--</span>filter filter     <span style=color:#75715e># 根据所提供的条件过滤输出</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span>q, <span style=color:#f92672>--</span>quiet             <span style=color:#75715e># 只显示id</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 将worker角色升级为manager</span>
+</span></span><span style=display:flex><span>docker node promote NODE [NODE<span style=color:#f92672>...</span>]
+</span></span><span style=display:flex><span><span style=color:#75715e># 将manager角色降级为worker</span>
+</span></span><span style=display:flex><span>docker node demote NODE [NODE<span style=color:#f92672>...</span>]
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 查看节点的详细信息，默认json格式</span>
+</span></span><span style=display:flex><span>docker node inspect 主机名
+</span></span><span style=display:flex><span><span style=color:#75715e># 查看节点信息平铺格式</span>
+</span></span><span style=display:flex><span>docker node inspect <span style=color:#f92672>--</span>pretty 主机名
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 从swarm中删除一个节点</span>
+</span></span><span style=display:flex><span>docker node rm 主机名
+</span></span><span style=display:flex><span><span style=color:#75715e># 从swarm中强制删除一个节点</span>
+</span></span><span style=display:flex><span>docker node rm <span style=color:#f92672>-</span>f 主机名
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 更新一个节点</span>
+</span></span><span style=display:flex><span>docker node update [options] 主机名
+</span></span><span style=display:flex><span><span style=color:#75715e># 选项</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>label<span style=color:#f92672>-</span>add list        <span style=color:#75715e># 添加节点标签(key=value)</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>label<span style=color:#f92672>-</span>rm list         <span style=color:#75715e># 删除节点标签</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>role string           <span style=color:#75715e># 更改节点角色 (&#34;worker&#34;|&#34;manager&#34;)</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>availability active<span style=color:#e6db74>/pause/</span>drain   <span style=color:#75715e># 设置节点的状态</span>
+</span></span><span style=display:flex><span>                <span style=color:#75715e># active  正常</span>
+</span></span><span style=display:flex><span>                <span style=color:#75715e># pause   暂停。调度程序不向节点分配新任务，但是现有任务仍然保持运行</span>
+</span></span><span style=display:flex><span>                <span style=color:#75715e># drain   排除自身work任务。调度程序不向节点分配新任务，且会关闭任何现有任务并在可用节点上安排它们</span>
+</span></span></code></pre></div><h2 id=docker-service服务管理>docker service：服务管理<a hidden class=anchor aria-hidden=true href=#docker-service服务管理>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span><span style=color:#75715e># 列出服务列表</span>
+</span></span><span style=display:flex><span>docker service ls
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 列出服务任务信息</span>
+</span></span><span style=display:flex><span>docker service ps [OPTIONS] SERVICE [SERVICE<span style=color:#f92672>...</span>]
+</span></span><span style=display:flex><span><span style=color:#75715e># 选项：</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>--</span><span style=color:#66d9ef>no</span><span style=color:#f92672>-</span>trunc          <span style=color:#75715e># 显示完整的信息</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span>f, <span style=color:#f92672>--</span>filter filter     <span style=color:#75715e># 根据所提供的条件过滤输出。过滤只运行的任务信息：&#34;desired-state=running&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span><span style=color:#e6db74>q, --quiet             # 只显示任务id
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># 查看服务内输出
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>docker service logs [OPTIONS] SERVICE|TASK
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># 选项：
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    --details        # 显示提供给日志的额外细节
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>-f,</span> <span style=color:#f92672>--</span>follow         <span style=color:#75715e># 跟踪日志输出</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>--</span>since string   <span style=color:#75715e># 显示自时间戳 (2013-01-02T13:23:37Z) 或相对时间戳 (42m for 42 minutes) 以来的日志</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span>n, <span style=color:#f92672>--</span>tail string    <span style=color:#75715e># 从日志末尾显示的行数(默认为“all”)</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span>t, <span style=color:#f92672>--</span>timestamps     <span style=color:#75715e># 显示时间戳</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 更新服务的相关配置</span>
+</span></span><span style=display:flex><span>docker service update [options] 服务名
+</span></span><span style=display:flex><span><span style=color:#75715e># 选项</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>args <span style=color:#e6db74>&#34;指令&#34;</span>         <span style=color:#75715e># 容器加入指令</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>image IMAGE        <span style=color:#75715e># 更新服务容器镜像</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>rollback              <span style=color:#75715e># 回滚服务容器版本</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>network<span style=color:#f92672>-</span>add 网络名     <span style=color:#75715e># 添加容器网络</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>network<span style=color:#f92672>-</span>rm 网络名      <span style=color:#75715e># 删除容器网络</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>reserve<span style=color:#f92672>-</span>cpu int           <span style=color:#75715e># 更新分配的cpu</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>reserve<span style=color:#f92672>-</span>memory bytes      <span style=color:#75715e># 更新分配的内存(示例：512m)</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>publish<span style=color:#f92672>-</span>add 暴露端口:容器端口     <span style=color:#75715e># 映射容器端口到主机</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>publish<span style=color:#f92672>-</span>rm 暴露端口:容器端口      <span style=color:#75715e># 移除暴露端口</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>endpoint<span style=color:#f92672>-</span>mode dnsrr        <span style=color:#75715e># 修改负载均衡模式为dnsrr</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>force                      <span style=color:#75715e># 强制重启服务</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>config<span style=color:#f92672>-</span>rm 配置文件名称       <span style=color:#75715e># 删除配置文件</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>constraint<span style=color:#f92672>-</span>add list        <span style=color:#75715e># 新增一个约束 </span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>constraint<span style=color:#f92672>-</span>rm list         <span style=color:#75715e># 移除一个约束 </span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>placement<span style=color:#f92672>-</span>pref<span style=color:#f92672>-</span>add pref    <span style=color:#75715e># 新增一个偏好 </span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>placement<span style=color:#f92672>-</span>pref<span style=color:#f92672>-</span>rm pref     <span style=color:#75715e># 移除一个偏好</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>config<span style=color:#f92672>-</span>add 配置文件名<span style=color:#960050;background-color:#1e0010>，</span>target<span style=color:#f92672>=</span><span style=color:#e6db74>/../</span>容器内配置文件名      <span style=color:#75715e># 添加新的配置文件到容器内</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 查看服务详细信息，默认json格式</span>
+</span></span><span style=display:flex><span>docker service inspect [OPTIONS] 服务名 [SERVICE<span style=color:#f92672>...</span>]
+</span></span><span style=display:flex><span><span style=color:#75715e># 查看服务信息平铺形式</span>
+</span></span><span style=display:flex><span>docker service inspect <span style=color:#f92672>--</span>pretty 服务名
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 删除服务</span>
+</span></span><span style=display:flex><span>docker service rm [OPTIONS] 服务名 [SERVICE<span style=color:#f92672>...</span>]
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 缩容扩容服务容器副本数量</span>
+</span></span><span style=display:flex><span>docker service scale 服务名<span style=color:#f92672>=</span>副本数 [SERVICE<span style=color:#f92672>=</span>REPLICAS<span style=color:#f92672>...</span>]
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 创建一个服务。一般搭建好 Swarm 集群后，使用 docker stack 部署应用，此处仅作了解</span>
+</span></span><span style=display:flex><span>docker service create [OPTIONS] IMAGE [COMMAND] [ARG<span style=color:#f92672>...</span>]
+</span></span><span style=display:flex><span><span style=color:#75715e># 选项：</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>name string           <span style=color:#75715e># 指定容器名称</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>replicas int          <span style=color:#75715e># 指定副本数</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>network 网络名         <span style=color:#75715e># 添加网络组</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>mode string           <span style=color:#75715e># 服务模式（复制或全局）(replicated | global)</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>reserve<span style=color:#f92672>-</span>cpu int       <span style=color:#75715e># 预留的cpu</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>reserve<span style=color:#f92672>-</span>memory bytes  <span style=color:#75715e># 预留的内存(512m)</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>limit<span style=color:#f92672>-</span>cpu int         <span style=color:#75715e># 限制CPU</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>limit<span style=color:#f92672>-</span>memory bytes    <span style=color:#75715e># 限制内存(512m)</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span>l, <span style=color:#f92672>--</span>label list            <span style=color:#75715e># 服务的标签(key=value)</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>container<span style=color:#f92672>-</span>label list      <span style=color:#75715e># 容器标签(key=value)</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span>p, <span style=color:#f92672>--</span>publish 暴露端口:容器端口   <span style=color:#75715e># 映射容器端口到主机</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span>e, <span style=color:#f92672>--</span>env MYVAR<span style=color:#f92672>=</span>myvalue         <span style=color:#75715e># 配置环境变量</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span>w, <span style=color:#f92672>--</span>workdir string            <span style=color:#75715e># 指定工作目录(示例：/tmp)</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span>restart<span style=color:#f92672>-</span>condition string       <span style=color:#75715e># 满足条件时重新启动（no | always | on-failure | unless-stopped）</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>restart<span style=color:#f92672>-</span>delay duration        <span style=color:#75715e># 重新启动尝试之间的延迟 (ns/us/ms/s/m/h)</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>restart<span style=color:#f92672>-</span>max<span style=color:#f92672>-</span>attempts int      <span style=color:#75715e># 放弃前的最大重启次数</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>restart<span style=color:#f92672>-</span>window duration           <span style=color:#75715e># 用于评估重启策略的窗口 (ns/us/ms/s/m/h)</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>stop<span style=color:#f92672>-</span>grace<span style=color:#f92672>-</span>period duration        <span style=color:#75715e># 强制杀死容器前的等待时间 (ns/us/ms/s/m/h)</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>update<span style=color:#f92672>-</span>delay duration             <span style=color:#75715e># 更新之间的延迟（ns/us/ms/s/m/h）（默认 0s）</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>update<span style=color:#f92672>-</span>failure<span style=color:#f92672>-</span>action string      <span style=color:#75715e># 更新失败的操作（&#34;pause&#34;停止|&#34;continue&#34;继续）（默认pause）</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>update<span style=color:#f92672>-</span>max<span style=color:#f92672>-</span>failure<span style=color:#f92672>-</span>ratio float    <span style=color:#75715e># 更新期间容忍的失败率</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>update<span style=color:#f92672>-</span>monitor duration           <span style=color:#75715e># 每次任务更新后监控失败的持续时间（ns/us/ms/s/m/h）（默认 0s）</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>update<span style=color:#f92672>-</span>parallelism int            <span style=color:#75715e># 同时更新的最大任务数(0表示一次更新全部任务)(默认为1)  </span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>endpoint<span style=color:#f92672>-</span>mode string              <span style=color:#75715e># 负载均衡模式(vip or dnsrr) (默认 &#34;vip&#34;)</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>rollback<span style=color:#f92672>-</span>monitor <span style=color:#ae81ff>20</span>s              <span style=color:#75715e># 每次容器与容器之间的回滚时间间隔</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>rollback<span style=color:#f92672>-</span>max<span style=color:#f92672>-</span>failure<span style=color:#f92672>-</span>ratio <span style=color:#f92672>.</span>数值    <span style=color:#75715e># 回滚故障率如果小于百分比允许运行（“.2”为%20）</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>mount type<span style=color:#f92672>=</span>volume,src<span style=color:#f92672>=</span>volume名称,dst<span style=color:#f92672>=</span>容器目录    <span style=color:#75715e># 创建volume类型数据卷</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>mount type<span style=color:#f92672>=</span>bind,src<span style=color:#f92672>=</span>宿主目录,dst<span style=color:#f92672>=</span>容器目录         <span style=color:#75715e># 创建bind读写目录挂载</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>mount type<span style=color:#f92672>=</span>bind,src<span style=color:#f92672>=</span>宿主目录,dst<span style=color:#f92672>=</span>容器目录,readonly     <span style=color:#75715e># 创建bind只读目录挂载</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>--</span>config source<span style=color:#f92672>=</span>docker配置文件,target<span style=color:#f92672>=</span>配置文件路径        <span style=color:#75715e># 创建docker配置文件到容器本地目录</span>
+</span></span></code></pre></div><h2 id=docker-secret管理敏感数据存储>docker secret：管理敏感数据存储<a hidden class=anchor aria-hidden=true href=#docker-secret管理敏感数据存储>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span><span style=color:#75715e># 查看敏感数据卷列表</span>
+</span></span><span style=display:flex><span>$ docker secret ls
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 显示一个或多个敏感数据卷的详细信息</span>
+</span></span><span style=display:flex><span>$ docker secret inspect [OPTIONS] SECRET [SECRET<span style=color:#f92672>...</span>]
+</span></span><span style=display:flex><span><span style=color:#75715e># 选项</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>--</span>pretty        <span style=color:#75715e># 易读的格式打印信息</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 从文件或标准输入创建一个敏感数据卷作为内容</span>
+</span></span><span style=display:flex><span>$ docker secret create [OPTIONS] SECRET [file<span style=color:#f92672>|-</span>]
+</span></span><span style=display:flex><span><span style=color:#75715e># 选项</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>-</span>d, <span style=color:#f92672>--</span>driver string            <span style=color:#75715e># 指定驱动</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>-</span>l, <span style=color:#f92672>--</span>label list               <span style=color:#75715e># 指定标签</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>--</span>template<span style=color:#f92672>-</span>driver string   <span style=color:#75715e># 指定模板驱动程序</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 移除一个或多个敏感数据卷</span>
+</span></span><span style=display:flex><span>$ docker secret rm SECRET [SECRET<span style=color:#f92672>...</span>]
+</span></span><span style=display:flex><span><span style=color:#75715e># 别名：rm, remove</span>
+</span></span></code></pre></div><h2 id=docker-config管理配置文件>docker config：管理配置文件<a hidden class=anchor aria-hidden=true href=#docker-config管理配置文件>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span><span style=color:#75715e># 查看已创建配置文件</span>
+</span></span><span style=display:flex><span>docker config ls [OPTIONS]
+</span></span><span style=display:flex><span><span style=color:#75715e># 选项：</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span>f, <span style=color:#f92672>--</span>filter filter     <span style=color:#75715e># 根据所提供的条件过滤输出</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>-</span><span style=color:#e6db74>q, --quiet             # 只显示id
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># 查看配置详细信息
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>docker config inspect 配置文件名
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># 删除配置
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>docker config rm CONFIG [CONFIG...]
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># 创建配置文件
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>docker config create 配置文件名 本地配置文件
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># 示例：新建配置文件并添加新配置文件到服务
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># 1.创建配置文件
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>docker config create nginx2_config nginx2.conf 
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># 2.删除旧配置文件
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>docker service update --config-rm ce_nginx_config 服务名
+</span></span></span><span style=display:flex><span><span style=color:#e6db74># 3.添加新配置文件到服务
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>docker service update --config-add src=nginx2_config,</span>target<span style=color:#f92672>=</span><span style=color:#e6db74>/etc/</span>nginx<span style=color:#f92672>/</span>nginx<span style=color:#f92672>.</span>conf ce_nginx
+</span></span></code></pre></div><h2 id=docker-network-网络信息>docker network: 网络信息<a hidden class=anchor aria-hidden=true href=#docker-network-网络信息>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span><span style=color:#75715e># 查看集群网络列表</span>
+</span></span><span style=display:flex><span>docker network ls
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 将容器连接到集群网络中</span>
+</span></span><span style=display:flex><span>$ docker network connect [OPTIONS] NETWORK CONTAINER
+</span></span><span style=display:flex><span><span style=color:#75715e># 选项</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>--</span>alias strings       <span style=color:#75715e># 为容器添加网络范围的别名</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>--</span>driver<span style=color:#f92672>-</span>opt string   <span style=color:#960050;background-color:#1e0010>·</span> <span style=color:#75715e># 指定网络驱动程序</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>--</span>ip string         <span style=color:#75715e># 指定IPv4地址(如172.30.100.104)</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>--</span>ip6 string        <span style=color:#75715e># 指定IPv6地址(例如，2001:db8::33)</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>--</span>link list         <span style=color:#75715e># 添加到另一个容器的链接</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>--</span>link<span style=color:#f92672>-</span>local<span style=color:#f92672>-</span>ip string    <span style=color:#75715e># 为容器添加一个链接本地地址</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 示例</span>
+</span></span><span style=display:flex><span>docker network connect mynet nginx
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 断开一个容器与集群网络的连接</span>
+</span></span><span style=display:flex><span>$ docker network disconnect [OPTIONS] NETWORK CONTAINER
+</span></span><span style=display:flex><span><span style=color:#75715e># 选项</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>-</span>f, <span style=color:#f92672>--</span>force   <span style=color:#75715e># 强制容器从网络断开连接  </span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 显示一个或多个集群网络的详细信息</span>
+</span></span><span style=display:flex><span>$ docker network inspect [OPTIONS] NETWORK [NETWORK<span style=color:#f92672>...</span>]
+</span></span><span style=display:flex><span><span style=color:#75715e># 选项</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>-</span>f, <span style=color:#f92672>--</span>format string   <span style=color:#75715e># 使用给定的Go模板格式化输出</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>-</span>v, <span style=color:#f92672>--</span>verbose         <span style=color:#75715e># 输出详细的诊断信息</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 创建一个集群网络</span>
+</span></span><span style=display:flex><span>$ docker network create [OPTIONS] NETWORK
+</span></span><span style=display:flex><span><span style=color:#75715e># 选项</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>--</span>attachable           <span style=color:#75715e># 准许手动容器连接</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>--</span>aux<span style=color:#f92672>-</span>address map      <span style=color:#75715e># 网络驱动使用的辅助IPv4或IPv6地址(默认映射[])</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>--</span>config<span style=color:#f92672>-</span>from string   <span style=color:#75715e># 要从其中复制配置的网络</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>--</span>config<span style=color:#f92672>-</span>only          <span style=color:#75715e># 创建仅配置网络</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>-</span>d, <span style=color:#f92672>--</span>driver string        <span style=color:#75715e># 管理网络的驱动程序(默认为“&#34;bridge”)。选项：bridge、overlay、macvlan</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>--</span>gateway strings      <span style=color:#75715e># 指定IPv4或IPv6主子网网关。示例：172.20.0.1</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>--</span>ingress              <span style=color:#75715e># 创建群路由-网格网络</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>--</span>internal             <span style=color:#75715e># 限制外部访问网络</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>--</span>ip<span style=color:#f92672>-</span>range strings     <span style=color:#75715e># 从子范围分配容器ip</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>--</span>ipam<span style=color:#f92672>-</span>driver string   <span style=color:#75715e># IP管理驱动(默认为“default”)</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>--</span>ipam<span style=color:#f92672>-</span>opt map         <span style=color:#75715e># 设置IPAM驱动程序的特定选项(默认map[])</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>--</span>ipv6                 <span style=color:#75715e># 启用IPv6网络</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>--</span>label list           <span style=color:#75715e># 在网络中设置元数据</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>-</span>o, <span style=color:#f92672>--</span>opt map              <span style=color:#75715e># 设置驱动程序特定选项(默认map[])</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>--</span>scope string         <span style=color:#75715e># 控制网络的范围</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>--</span>subnet strings       <span style=color:#75715e># 指定一个CIDR格式的网段。示例：172.20.0.0/24</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 示例：</span>
+</span></span><span style=display:flex><span>docker network create <span style=color:#f92672>-</span>d overlay <span style=color:#f92672>--</span>attachable apps_net
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 移除所有未使用的集群网络</span>
+</span></span><span style=display:flex><span>$ docker network prune [OPTIONS]
+</span></span><span style=display:flex><span><span style=color:#75715e># 选项</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>--</span>filter filter   <span style=color:#75715e># 提供过滤值(e.g. &#39;until=&lt;timestamp&gt;&#39;) </span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>-</span>f, <span style=color:#f92672>--</span>force           <span style=color:#75715e># 强制，没有提示确认</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 删除一个或多个集群网络</span>
+</span></span><span style=display:flex><span>$ docker network rm NETWORK [NETWORK<span style=color:#f92672>...</span>]
+</span></span><span style=display:flex><span><span style=color:#75715e># 别名：rm, remove</span>
+</span></span></code></pre></div><h2 id=开始配置>开始配置<a hidden class=anchor aria-hidden=true href=#开始配置>#</a></h2><p>环境准备</p><p>1、修改主机名
+2、配置IP地址
+3、关闭防火墙和SELINUX安全模式
+4、配置系统YUM源和Docker镜像源
+5、更新系统（yum update -y）
+6、安装好docker环境</p><h3 id=初始化集群>初始化集群<a hidden class=anchor aria-hidden=true href=#初始化集群>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span>docker swarm init <span style=color:#f92672>--</span>advertise<span style=color:#f92672>-</span>addr <span style=color:#ae81ff>192.168.65.148</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker swarm init --advertise-addr 192.168.65.148</span>
+</span></span><span style=display:flex><span>Swarm initialized: current node (<span style=color:#ae81ff>1e0</span>chr8bpn27vlq9g056zy7a2) is now a manager<span style=color:#f92672>.</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>To add a worker to this swarm, run the following command:
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    docker swarm join <span style=color:#f92672>--</span>token SWMTKN<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#f92672>-</span><span style=color:#ae81ff>10</span>u0nu575ou6thien8kscddxebzsnatljdytcas3n9sgin5jog<span style=color:#f92672>-</span><span style=color:#ae81ff>9</span>cu9j19pfitelu1oap7rgdlub <span style=color:#ae81ff>192.168.65.148</span>:<span style=color:#ae81ff>2377</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>To add a manager to this swarm, run <span style=color:#e6db74>&#39;docker swarm join-token manager&#39;</span> <span style=color:#f92672>and</span> follow the instructions<span style=color:#f92672>.</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker swarm join-token manager</span>
+</span></span><span style=display:flex><span>To add a manager to this swarm, run the following command:
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    docker swarm join <span style=color:#f92672>--</span>token SWMTKN<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span><span style=color:#f92672>-</span><span style=color:#ae81ff>10</span>u0nu575ou6thien8kscddxebzsnatljdytcas3n9sgin5jog<span style=color:#f92672>-</span>ejpgz6tdq0xsm3c6qjrstq299 <span style=color:#ae81ff>192.168.65.148</span>:<span style=color:#ae81ff>2377</span>
+</span></span></code></pre></div><h3 id=让其他节点加入集群>让其他节点加入集群<a hidden class=anchor aria-hidden=true href=#让其他节点加入集群>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker node ls</span>
+</span></span><span style=display:flex><span>ID                            HOSTNAME     STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+</span></span><span style=display:flex><span><span style=color:#ae81ff>1e0</span>chr8bpn27vlq9g056zy7a2 <span style=color:#f92672>*</span>   chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>   Ready     Active         Leader           <span style=color:#ae81ff>27.3.1</span>
+</span></span><span style=display:flex><span>jb55cgd88n5tl2ybdokhznq1t     chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>   Ready     Active                          <span style=color:#ae81ff>27.3.1</span>
+</span></span><span style=display:flex><span>oav94gisk9wm4mfuqvzpfhqzh     chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>2</span>   Ready     Active                          <span style=color:#ae81ff>27.3.1</span>
+</span></span><span style=display:flex><span>g6vxdk2myltc9i9lwx1zr3s4i     chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>3</span>   Ready     Active                          <span style=color:#ae81ff>27.3.1</span>
+</span></span></code></pre></div><h3 id=查看详细情况>查看详细情况<a hidden class=anchor aria-hidden=true href=#查看详细情况>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker info</span>
+</span></span><span style=display:flex><span>Client: Docker Engine <span style=color:#f92672>-</span> Community
+</span></span><span style=display:flex><span> Version:    <span style=color:#ae81ff>27.3.1</span>
+</span></span><span style=display:flex><span> Context:    default
+</span></span><span style=display:flex><span> Debug Mode: false
+</span></span><span style=display:flex><span> Plugins:
+</span></span><span style=display:flex><span>  buildx: Docker Buildx (Docker Inc<span style=color:#f92672>.</span>)
+</span></span><span style=display:flex><span>    Version:  v0<span style=color:#ae81ff>.17.1</span>
+</span></span><span style=display:flex><span>    Path:     <span style=color:#e6db74>/usr/</span>libexec<span style=color:#e6db74>/docker/c</span>li<span style=color:#f92672>-</span>plugins<span style=color:#f92672>/</span>docker<span style=color:#f92672>-</span>buildx
+</span></span><span style=display:flex><span>  compose: Docker Compose (Docker Inc<span style=color:#f92672>.</span>)
+</span></span><span style=display:flex><span>    Version:  v2<span style=color:#ae81ff>.29.7</span>
+</span></span><span style=display:flex><span>    Path:     <span style=color:#e6db74>/usr/</span>libexec<span style=color:#e6db74>/docker/c</span>li<span style=color:#f92672>-</span>plugins<span style=color:#f92672>/</span>docker<span style=color:#f92672>-</span>compose
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Server:
+</span></span><span style=display:flex><span> Containers: <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>  Running: <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>  Paused: <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>  Stopped: <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span> Images: <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span> Server Version: <span style=color:#ae81ff>27.3.1</span>
+</span></span><span style=display:flex><span> Storage Driver: overlay2
+</span></span><span style=display:flex><span>  Backing Filesystem: extfs
+</span></span><span style=display:flex><span>  Supports d_type: true
+</span></span><span style=display:flex><span>  Using metacopy: false
+</span></span><span style=display:flex><span>  Native Overlay Diff: true
+</span></span><span style=display:flex><span>  userxattr: false
+</span></span><span style=display:flex><span> Logging Driver: json<span style=color:#f92672>-</span>file
+</span></span><span style=display:flex><span> Cgroup Driver: systemd
+</span></span><span style=display:flex><span> Cgroup Version: <span style=color:#ae81ff>2</span>
+</span></span><span style=display:flex><span> Plugins:
+</span></span><span style=display:flex><span>  Volume: local
+</span></span><span style=display:flex><span>  Network: bridge host ipvlan macvlan null overlay
+</span></span><span style=display:flex><span>  Log: awslogs fluentd gcplogs gelf journald json<span style=color:#f92672>-</span>file local splunk syslog
+</span></span><span style=display:flex><span> Swarm: active
+</span></span><span style=display:flex><span>  NodeID: <span style=color:#ae81ff>1e0</span>chr8bpn27vlq9g056zy7a2
+</span></span><span style=display:flex><span>  Is Manager: true
+</span></span><span style=display:flex><span>  ClusterID: ye2nnvev8mzdyv0g56ee0ka6w
+</span></span><span style=display:flex><span>  Managers: <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>  Nodes: <span style=color:#ae81ff>4</span>
+</span></span><span style=display:flex><span>  Data Path Port: <span style=color:#ae81ff>4789</span>
+</span></span><span style=display:flex><span>  Orchestration:
+</span></span><span style=display:flex><span>   Task History Retention Limit: <span style=color:#ae81ff>5</span>
+</span></span><span style=display:flex><span>  Raft:
+</span></span><span style=display:flex><span>   Snapshot Interval: <span style=color:#ae81ff>10000</span>
+</span></span><span style=display:flex><span>   Number of Old Snapshots to Retain: <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>   Heartbeat Tick: <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>   Election Tick: <span style=color:#ae81ff>10</span>
+</span></span><span style=display:flex><span>  Dispatcher:
+</span></span><span style=display:flex><span>   Heartbeat Period: <span style=color:#ae81ff>5</span> seconds
+</span></span><span style=display:flex><span>  CA Configuration:
+</span></span><span style=display:flex><span>   Expiry Duration: <span style=color:#ae81ff>3</span> months
+</span></span><span style=display:flex><span>   Force Rotate: <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>  Autolock Managers: false
+</span></span><span style=display:flex><span>  Root Rotation In Progress: false
+</span></span><span style=display:flex><span>  Node Address: <span style=color:#ae81ff>192.168.65.148</span>
+</span></span><span style=display:flex><span>  Manager Addresses:
+</span></span><span style=display:flex><span>   <span style=color:#ae81ff>192.168.65.148</span>:<span style=color:#ae81ff>2377</span>
+</span></span><span style=display:flex><span> Runtimes: io<span style=color:#f92672>.</span>containerd<span style=color:#f92672>.</span>runc<span style=color:#f92672>.</span>v2 runc
+</span></span><span style=display:flex><span> Default Runtime: runc
+</span></span><span style=display:flex><span> Init Binary: docker<span style=color:#f92672>-</span>init
+</span></span><span style=display:flex><span> containerd version: <span style=color:#ae81ff>7</span>f7fdf5fed64eb6a7caf99b3e12efcf9d60e311c
+</span></span><span style=display:flex><span> runc version: v1<span style=color:#ae81ff>.1.14</span><span style=color:#f92672>-</span><span style=color:#ae81ff>0</span><span style=color:#f92672>-</span>g2c9f560
+</span></span><span style=display:flex><span> init version: de40ad0
+</span></span><span style=display:flex><span> Security Options:
+</span></span><span style=display:flex><span>  apparmor
+</span></span><span style=display:flex><span>  seccomp
+</span></span><span style=display:flex><span>   Profile: builtin
+</span></span><span style=display:flex><span>  cgroupns
+</span></span><span style=display:flex><span> Kernel Version: <span style=color:#ae81ff>6.1.0</span><span style=color:#f92672>-</span><span style=color:#ae81ff>26</span><span style=color:#f92672>-</span>amd64
+</span></span><span style=display:flex><span> Operating System: Debian GNU<span style=color:#f92672>/</span>Linux <span style=color:#ae81ff>12</span> (bookworm)
+</span></span><span style=display:flex><span> OSType: linux
+</span></span><span style=display:flex><span> Architecture: x86_64
+</span></span><span style=display:flex><span> CPUs: <span style=color:#ae81ff>4</span>
+</span></span><span style=display:flex><span> Total Memory: <span style=color:#ae81ff>1.887</span>GiB
+</span></span><span style=display:flex><span> Name: chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span> ID: <span style=color:#ae81ff>8</span>d684424<span style=color:#f92672>-</span><span style=color:#ae81ff>29</span>b4<span style=color:#f92672>-</span><span style=color:#ae81ff>4611</span><span style=color:#f92672>-</span><span style=color:#ae81ff>8</span>a59<span style=color:#f92672>-</span>d4ce19b0f9da
+</span></span><span style=display:flex><span> Docker Root Dir: <span style=color:#e6db74>/var/</span>lib<span style=color:#f92672>/</span>docker
+</span></span><span style=display:flex><span> Debug Mode: false
+</span></span><span style=display:flex><span> Experimental: false
+</span></span><span style=display:flex><span> Insecure Registries:
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>127.0.0.0</span><span style=color:#f92672>/</span><span style=color:#ae81ff>8</span>
+</span></span><span style=display:flex><span> Live Restore Enabled: false
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>WARNING: bridge<span style=color:#f92672>-</span>nf<span style=color:#f92672>-</span>call<span style=color:#f92672>-</span>iptables is disabled
+</span></span><span style=display:flex><span>WARNING: bridge<span style=color:#f92672>-</span>nf<span style=color:#f92672>-</span>call<span style=color:#f92672>-</span>ip6tables is disabled
+</span></span></code></pre></div><h3 id=查看网络信息>查看网络信息<a hidden class=anchor aria-hidden=true href=#查看网络信息>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker network ls</span>
+</span></span><span style=display:flex><span>NETWORK ID     NAME              DRIVER    SCOPE
+</span></span><span style=display:flex><span>a162d4d5a77e   bridge            bridge    local
+</span></span><span style=display:flex><span><span style=color:#ae81ff>1</span>f622764003c   docker_gwbridge   bridge    local
+</span></span><span style=display:flex><span><span style=color:#ae81ff>8</span>f11bd442416   host              host      local
+</span></span><span style=display:flex><span>d8isx3sccunf   ingress           overlay   swarm
+</span></span><span style=display:flex><span><span style=color:#ae81ff>3</span>b8eea1a0902   none              null      local
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker network inspect d8isx3sccunf</span>
+</span></span><span style=display:flex><span>[
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Name&#34;</span>: <span style=color:#e6db74>&#34;ingress&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Id&#34;</span>: <span style=color:#e6db74>&#34;d8isx3sccunf33xeb63c1v21x&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Created&#34;</span>: <span style=color:#e6db74>&#34;2024-10-28T19:50:32.014998441+08:00&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Scope&#34;</span>: <span style=color:#e6db74>&#34;swarm&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Driver&#34;</span>: <span style=color:#e6db74>&#34;overlay&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;EnableIPv6&#34;</span>: false,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;IPAM&#34;</span>: {
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;Driver&#34;</span>: <span style=color:#e6db74>&#34;default&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;Options&#34;</span>: null,
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;Config&#34;</span>: [
+</span></span><span style=display:flex><span>                {
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>&#34;Subnet&#34;</span>: <span style=color:#e6db74>&#34;10.0.0.0/24&#34;</span>,
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>&#34;Gateway&#34;</span>: <span style=color:#e6db74>&#34;10.0.0.1&#34;</span>
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            ]
+</span></span><span style=display:flex><span>        },
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Internal&#34;</span>: false,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Attachable&#34;</span>: false,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Ingress&#34;</span>: true,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;ConfigFrom&#34;</span>: {
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;Network&#34;</span>: <span style=color:#e6db74>&#34;&#34;</span>
+</span></span><span style=display:flex><span>        },
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;ConfigOnly&#34;</span>: false,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Containers&#34;</span>: {
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;ingress-sbox&#34;</span>: {
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;Name&#34;</span>: <span style=color:#e6db74>&#34;ingress-endpoint&#34;</span>,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;EndpointID&#34;</span>: <span style=color:#e6db74>&#34;f2dd609d5bc4ba0cb7206b7e4bdc3cd1ba232d727841b693805eecd1b591f7b9&#34;</span>,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;MacAddress&#34;</span>: <span style=color:#e6db74>&#34;02:42:0a:00:00:02&#34;</span>,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;IPv4Address&#34;</span>: <span style=color:#e6db74>&#34;10.0.0.2/24&#34;</span>,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;IPv6Address&#34;</span>: <span style=color:#e6db74>&#34;&#34;</span>
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        },
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Options&#34;</span>: {
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;com.docker.network.driver.overlay.vxlanid_list&#34;</span>: <span style=color:#e6db74>&#34;4096&#34;</span>
+</span></span><span style=display:flex><span>        },
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Labels&#34;</span>: {},
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Peers&#34;</span>: [
+</span></span><span style=display:flex><span>            {
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;Name&#34;</span>: <span style=color:#e6db74>&#34;b4947f7ebf00&#34;</span>,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;IP&#34;</span>: <span style=color:#e6db74>&#34;192.168.65.148&#34;</span>
+</span></span><span style=display:flex><span>            },
+</span></span><span style=display:flex><span>            {
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;Name&#34;</span>: <span style=color:#e6db74>&#34;bac21fa67653&#34;</span>,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;IP&#34;</span>: <span style=color:#e6db74>&#34;192.168.65.154&#34;</span>
+</span></span><span style=display:flex><span>            },
+</span></span><span style=display:flex><span>            {
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;Name&#34;</span>: <span style=color:#e6db74>&#34;d6c037335dd0&#34;</span>,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;IP&#34;</span>: <span style=color:#e6db74>&#34;192.168.65.155&#34;</span>
+</span></span><span style=display:flex><span>            },
+</span></span><span style=display:flex><span>            {
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;Name&#34;</span>: <span style=color:#e6db74>&#34;3b5f5c73c94c&#34;</span>,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;IP&#34;</span>: <span style=color:#e6db74>&#34;192.168.65.152&#34;</span>
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        ]
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>]
+</span></span></code></pre></div><h3 id=更换节点的角色manager--worker>更换节点的角色（manager &ndash; worker）<a hidden class=anchor aria-hidden=true href=#更换节点的角色manager--worker>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker node update -h</span>
+</span></span><span style=display:flex><span>Flag shorthand <span style=color:#f92672>-</span>h has been deprecated, <span style=color:#66d9ef>use</span> <span style=color:#f92672>--</span>help
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Usage:  docker node update [OPTIONS] NODE
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Update a node
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Options:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>--</span>availability string   Availability of the node (<span style=color:#e6db74>&#34;active&#34;</span>, <span style=color:#e6db74>&#34;pause&#34;</span>, <span style=color:#e6db74>&#34;drain&#34;</span>)
+</span></span><span style=display:flex><span>      <span style=color:#f92672>--</span>label<span style=color:#f92672>-</span>add list        Add <span style=color:#f92672>or</span> update a node label (<span style=color:#e6db74>&#34;key=value&#34;</span>)
+</span></span><span style=display:flex><span>      <span style=color:#f92672>--</span>label<span style=color:#f92672>-</span>rm list         Remove a node label <span style=color:#66d9ef>if</span> exists
+</span></span><span style=display:flex><span>      <span style=color:#f92672>--</span>role string           Role of the node (<span style=color:#e6db74>&#34;worker&#34;</span>, <span style=color:#e6db74>&#34;manager&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker node update --role manager chenjx12-1</span>
+</span></span><span style=display:flex><span>chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker node ls</span>
+</span></span><span style=display:flex><span>ID                            HOSTNAME     STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+</span></span><span style=display:flex><span><span style=color:#ae81ff>1e0</span>chr8bpn27vlq9g056zy7a2 <span style=color:#f92672>*</span>   chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>   Ready     Active         Leader           <span style=color:#ae81ff>27.3.1</span>
+</span></span><span style=display:flex><span>jb55cgd88n5tl2ybdokhznq1t     chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>   Ready     Active         Reachable        <span style=color:#ae81ff>27.3.1</span>
+</span></span><span style=display:flex><span>oav94gisk9wm4mfuqvzpfhqzh     chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>2</span>   Ready     Active                          <span style=color:#ae81ff>27.3.1</span>
+</span></span><span style=display:flex><span>g6vxdk2myltc9i9lwx1zr3s4i     chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>3</span>   Ready     Active                          <span style=color:#ae81ff>27.3.1</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker node update --role worker chenjx12-1</span>
+</span></span><span style=display:flex><span>chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker node ls</span>
+</span></span><span style=display:flex><span>ID                            HOSTNAME     STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+</span></span><span style=display:flex><span><span style=color:#ae81ff>1e0</span>chr8bpn27vlq9g056zy7a2 <span style=color:#f92672>*</span>   chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>   Ready     Active         Leader           <span style=color:#ae81ff>27.3.1</span>
+</span></span><span style=display:flex><span>jb55cgd88n5tl2ybdokhznq1t     chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>   Ready     Active                          <span style=color:#ae81ff>27.3.1</span>
+</span></span><span style=display:flex><span>oav94gisk9wm4mfuqvzpfhqzh     chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>2</span>   Ready     Active                          <span style=color:#ae81ff>27.3.1</span>
+</span></span><span style=display:flex><span>g6vxdk2myltc9i9lwx1zr3s4i     chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>3</span>   Ready     Active                          <span style=color:#ae81ff>27.3.1</span>
+</span></span></code></pre></div><h3 id=节点退出集群>节点退出集群<a hidden class=anchor aria-hidden=true href=#节点退出集群>#</a></h3><p>在3号节点上使用命令，回到0号节点发现3号节点下线了（down）</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker swarm leave -h</span>
+</span></span><span style=display:flex><span>Flag shorthand <span style=color:#f92672>-</span>h has been deprecated, <span style=color:#66d9ef>use</span> <span style=color:#f92672>--</span>help
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Usage:  docker swarm leave [OPTIONS]
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Leave the swarm
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Options:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>-</span>f, <span style=color:#f92672>--</span>force   Force this node to leave the swarm, ignoring warnings
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>3</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker swarm leave -f</span>
+</span></span><span style=display:flex><span>Node left the swarm<span style=color:#f92672>.</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker node ls</span>
+</span></span><span style=display:flex><span>ID                            HOSTNAME     STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+</span></span><span style=display:flex><span><span style=color:#ae81ff>1e0</span>chr8bpn27vlq9g056zy7a2 <span style=color:#f92672>*</span>   chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>   Ready     Active         Leader           <span style=color:#ae81ff>27.3.1</span>
+</span></span><span style=display:flex><span>jb55cgd88n5tl2ybdokhznq1t     chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>   Ready     Active                          <span style=color:#ae81ff>27.3.1</span>
+</span></span><span style=display:flex><span>oav94gisk9wm4mfuqvzpfhqzh     chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>2</span>   Ready     Active                          <span style=color:#ae81ff>27.3.1</span>
+</span></span><span style=display:flex><span>g6vxdk2myltc9i9lwx1zr3s4i     chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>3</span>   Down      Active                          <span style=color:#ae81ff>27.3.1</span>
+</span></span></code></pre></div><h3 id=删除节点>删除节点<a hidden class=anchor aria-hidden=true href=#删除节点>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span>docker node rm [id]
+</span></span></code></pre></div><p>注意，删除节点无法删除manager管理节点，需要先<code>--role worker</code>，才能<code>rm</code></p><h2 id=服务部署>服务部署<a hidden class=anchor aria-hidden=true href=#服务部署>#</a></h2><p>查看help</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker service</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Usage:  docker service COMMAND
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Manage Swarm services
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Commands:
+</span></span><span style=display:flex><span>  create      Create a <span style=color:#66d9ef>new</span> service
+</span></span><span style=display:flex><span>  inspect     Display detailed information on one <span style=color:#f92672>or</span> more services
+</span></span><span style=display:flex><span>  logs        Fetch the logs of a service <span style=color:#f92672>or</span> task
+</span></span><span style=display:flex><span>  ls          List services
+</span></span><span style=display:flex><span>  ps          List the tasks of one <span style=color:#f92672>or</span> more services
+</span></span><span style=display:flex><span>  rm          Remove one <span style=color:#f92672>or</span> more services
+</span></span><span style=display:flex><span>  rollback    Revert changes to a service<span style=color:#e6db74>&#39;s configuration
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  scale       Scale one or multiple replicated services
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  update      Update a service
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>Run &#39;</span>docker service COMMAND <span style=color:#f92672>--</span>help<span style=color:#960050;background-color:#1e0010>&#39;</span> <span style=color:#66d9ef>for</span> more information on a command<span style=color:#f92672>.</span>
+</span></span></code></pre></div><h3 id=先在leader上pull一个nginx>先在leader上pull一个nginx<a hidden class=anchor aria-hidden=true href=#先在leader上pull一个nginx>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#e6db74>/etc/</span>docker<span style=color:#75715e># docker pull nginx</span>
+</span></span><span style=display:flex><span>Using default tag: latest
+</span></span><span style=display:flex><span>latest: Pulling from library<span style=color:#f92672>/</span>nginx
+</span></span><span style=display:flex><span>a480a496ba95: Pull complete 
+</span></span><span style=display:flex><span>f3ace1b8ce45: Pull complete 
+</span></span><span style=display:flex><span><span style=color:#ae81ff>11</span>d6fdd0e8a7: Pull complete 
+</span></span><span style=display:flex><span>f1091da6fd5c: Pull complete 
+</span></span><span style=display:flex><span><span style=color:#ae81ff>40</span>eea07b53d8: Pull complete 
+</span></span><span style=display:flex><span><span style=color:#ae81ff>6476794e50</span>f4: Pull complete 
+</span></span><span style=display:flex><span><span style=color:#ae81ff>70850</span>b3ec6b2: Pull complete 
+</span></span><span style=display:flex><span>Digest: sha256:28402db69fec7c17e179ea87882667f1e054391138f77ffaf0c3eb388efc3ffb
+</span></span><span style=display:flex><span>Status: Downloaded newer image <span style=color:#66d9ef>for</span> nginx:latest
+</span></span><span style=display:flex><span>docker<span style=color:#f92672>.</span>io<span style=color:#e6db74>/library/</span>nginx:latest
+</span></span></code></pre></div><h3 id=使用service命令启动nginx>使用service命令启动Nginx<a hidden class=anchor aria-hidden=true href=#使用service命令启动nginx>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker service create -p 8888:80 --name xybdiy-nginx nginx</span>
+</span></span><span style=display:flex><span>qvx9t2qskhr8g0r1i7y5f9ub9
+</span></span><span style=display:flex><span>overall progress: <span style=color:#ae81ff>1</span> out of <span style=color:#ae81ff>1</span> tasks 
+</span></span><span style=display:flex><span><span style=color:#ae81ff>1</span><span style=color:#f92672>/</span><span style=color:#ae81ff>1</span>: running   [<span style=color:#f92672>==================================================&gt;</span>] 
+</span></span><span style=display:flex><span>verify: Service qvx9t2qskhr8g0r1i7y5f9ub9 converged 
+</span></span></code></pre></div><p>使用<code>docker services</code>创建服务，具有扩缩容，滚动更新</p><h3 id=查看服务>查看服务<a hidden class=anchor aria-hidden=true href=#查看服务>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker service ls</span>
+</span></span><span style=display:flex><span>ID             NAME           MODE         REPLICAS   IMAGE          PORTS
+</span></span><span style=display:flex><span>qvx9t2qskhr8   xybdiy<span style=color:#f92672>-</span>nginx   replicated   <span style=color:#ae81ff>1</span><span style=color:#e6db74>/1        nginx:latest   *:8888-&gt;80/</span>tcp
+</span></span><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker service ps xybdiy-nginx</span>
+</span></span><span style=display:flex><span>ID             NAME             IMAGE          NODE         DESIRED STATE   CURRENT STATE                ERROR     PORTS
+</span></span><span style=display:flex><span><span style=color:#ae81ff>7</span>jzyf300ygqh   xybdiy<span style=color:#f92672>-</span>nginx<span style=color:#ae81ff>.1</span>   nginx:latest   chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>   Running         Running about a minute ago             
+</span></span><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker ps</span>
+</span></span><span style=display:flex><span>CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker ps</span>
+</span></span><span style=display:flex><span>CONTAINER ID   IMAGE          COMMAND                  CREATED         STATUS         PORTS     NAMES
+</span></span><span style=display:flex><span><span style=color:#ae81ff>1</span>efdebcefcd0   nginx:latest   <span style=color:#e6db74>&#34;/docker-entrypoint.…&#34;</span>   <span style=color:#ae81ff>2</span> minutes ago   Up <span style=color:#ae81ff>2</span> minutes   <span style=color:#ae81ff>80</span><span style=color:#f92672>/</span>tcp    xybdiy<span style=color:#f92672>-</span>nginx<span style=color:#ae81ff>.1.7</span>jzyf300ygqhnj8zfukkjmrtp
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker service inspect xybdiy-nginx</span>
+</span></span><span style=display:flex><span>[
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;ID&#34;</span>: <span style=color:#e6db74>&#34;qvx9t2qskhr8g0r1i7y5f9ub9&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Version&#34;</span>: {
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;Index&#34;</span>: <span style=color:#ae81ff>76</span>
+</span></span><span style=display:flex><span>        },
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;CreatedAt&#34;</span>: <span style=color:#e6db74>&#34;2024-10-28T13:46:32.118348646Z&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;UpdatedAt&#34;</span>: <span style=color:#e6db74>&#34;2024-10-28T13:46:32.127340473Z&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Spec&#34;</span>: {
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;Name&#34;</span>: <span style=color:#e6db74>&#34;xybdiy-nginx&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;Labels&#34;</span>: {},
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;TaskTemplate&#34;</span>: {
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;ContainerSpec&#34;</span>: {
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>&#34;Image&#34;</span>: <span style=color:#e6db74>&#34;nginx:latest@sha256:28402db69fec7c17e179ea87882667f1e054391138f77ffaf0c3eb388efc3ffb&#34;</span>,
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>&#34;Init&#34;</span>: false,
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>&#34;StopGracePeriod&#34;</span>: <span style=color:#ae81ff>10000000000</span>,
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>&#34;DNSConfig&#34;</span>: {},
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>&#34;Isolation&#34;</span>: <span style=color:#e6db74>&#34;default&#34;</span>
+</span></span><span style=display:flex><span>                },
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;Resources&#34;</span>: {
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>&#34;Limits&#34;</span>: {},
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>&#34;Reservations&#34;</span>: {}
+</span></span><span style=display:flex><span>                },
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;RestartPolicy&#34;</span>: {
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>&#34;Condition&#34;</span>: <span style=color:#e6db74>&#34;any&#34;</span>,
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>&#34;Delay&#34;</span>: <span style=color:#ae81ff>5000000000</span>,
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>&#34;MaxAttempts&#34;</span>: <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>                },
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;Placement&#34;</span>: {
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>&#34;Platforms&#34;</span>: [
+</span></span><span style=display:flex><span>                        {
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;Architecture&#34;</span>: <span style=color:#e6db74>&#34;amd64&#34;</span>,
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;OS&#34;</span>: <span style=color:#e6db74>&#34;linux&#34;</span>
+</span></span><span style=display:flex><span>                        },
+</span></span><span style=display:flex><span>                        {
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;Architecture&#34;</span>: <span style=color:#e6db74>&#34;unknown&#34;</span>,
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;OS&#34;</span>: <span style=color:#e6db74>&#34;unknown&#34;</span>
+</span></span><span style=display:flex><span>                        },
+</span></span><span style=display:flex><span>                        {
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;OS&#34;</span>: <span style=color:#e6db74>&#34;linux&#34;</span>
+</span></span><span style=display:flex><span>                        },
+</span></span><span style=display:flex><span>                        {
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;Architecture&#34;</span>: <span style=color:#e6db74>&#34;unknown&#34;</span>,
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;OS&#34;</span>: <span style=color:#e6db74>&#34;unknown&#34;</span>
+</span></span><span style=display:flex><span>                        },
+</span></span><span style=display:flex><span>                        {
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;OS&#34;</span>: <span style=color:#e6db74>&#34;linux&#34;</span>
+</span></span><span style=display:flex><span>                        },
+</span></span><span style=display:flex><span>                        {
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;Architecture&#34;</span>: <span style=color:#e6db74>&#34;unknown&#34;</span>,
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;OS&#34;</span>: <span style=color:#e6db74>&#34;unknown&#34;</span>
+</span></span><span style=display:flex><span>                        },
+</span></span><span style=display:flex><span>                        {
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;Architecture&#34;</span>: <span style=color:#e6db74>&#34;arm64&#34;</span>,
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;OS&#34;</span>: <span style=color:#e6db74>&#34;linux&#34;</span>
+</span></span><span style=display:flex><span>                        },
+</span></span><span style=display:flex><span>                        {
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;Architecture&#34;</span>: <span style=color:#e6db74>&#34;unknown&#34;</span>,
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;OS&#34;</span>: <span style=color:#e6db74>&#34;unknown&#34;</span>
+</span></span><span style=display:flex><span>                        },
+</span></span><span style=display:flex><span>                        {
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;Architecture&#34;</span>: <span style=color:#e6db74>&#34;386&#34;</span>,
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;OS&#34;</span>: <span style=color:#e6db74>&#34;linux&#34;</span>
+</span></span><span style=display:flex><span>                        },
+</span></span><span style=display:flex><span>                        {
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;Architecture&#34;</span>: <span style=color:#e6db74>&#34;unknown&#34;</span>,
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;OS&#34;</span>: <span style=color:#e6db74>&#34;unknown&#34;</span>
+</span></span><span style=display:flex><span>                        },
+</span></span><span style=display:flex><span>                        {
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;Architecture&#34;</span>: <span style=color:#e6db74>&#34;mips64le&#34;</span>,
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;OS&#34;</span>: <span style=color:#e6db74>&#34;linux&#34;</span>
+</span></span><span style=display:flex><span>                        },
+</span></span><span style=display:flex><span>                        {
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;Architecture&#34;</span>: <span style=color:#e6db74>&#34;unknown&#34;</span>,
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;OS&#34;</span>: <span style=color:#e6db74>&#34;unknown&#34;</span>
+</span></span><span style=display:flex><span>                        },
+</span></span><span style=display:flex><span>                        {
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;Architecture&#34;</span>: <span style=color:#e6db74>&#34;ppc64le&#34;</span>,
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;OS&#34;</span>: <span style=color:#e6db74>&#34;linux&#34;</span>
+</span></span><span style=display:flex><span>                        },
+</span></span><span style=display:flex><span>                        {
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;Architecture&#34;</span>: <span style=color:#e6db74>&#34;unknown&#34;</span>,
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;OS&#34;</span>: <span style=color:#e6db74>&#34;unknown&#34;</span>
+</span></span><span style=display:flex><span>                        },
+</span></span><span style=display:flex><span>                        {
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;Architecture&#34;</span>: <span style=color:#e6db74>&#34;s390x&#34;</span>,
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;OS&#34;</span>: <span style=color:#e6db74>&#34;linux&#34;</span>
+</span></span><span style=display:flex><span>                        },
+</span></span><span style=display:flex><span>                        {
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;Architecture&#34;</span>: <span style=color:#e6db74>&#34;unknown&#34;</span>,
+</span></span><span style=display:flex><span>                            <span style=color:#e6db74>&#34;OS&#34;</span>: <span style=color:#e6db74>&#34;unknown&#34;</span>
+</span></span><span style=display:flex><span>                        }
+</span></span><span style=display:flex><span>                    ]
+</span></span><span style=display:flex><span>                },
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;ForceUpdate&#34;</span>: <span style=color:#ae81ff>0</span>,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;Runtime&#34;</span>: <span style=color:#e6db74>&#34;container&#34;</span>
+</span></span><span style=display:flex><span>            },
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;Mode&#34;</span>: {
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;Replicated&#34;</span>: {
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>&#34;Replicas&#34;</span>: <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            },
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;UpdateConfig&#34;</span>: {
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;Parallelism&#34;</span>: <span style=color:#ae81ff>1</span>,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;FailureAction&#34;</span>: <span style=color:#e6db74>&#34;pause&#34;</span>,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;Monitor&#34;</span>: <span style=color:#ae81ff>5000000000</span>,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;MaxFailureRatio&#34;</span>: <span style=color:#ae81ff>0</span>,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;Order&#34;</span>: <span style=color:#e6db74>&#34;stop-first&#34;</span>
+</span></span><span style=display:flex><span>            },
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;RollbackConfig&#34;</span>: {
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;Parallelism&#34;</span>: <span style=color:#ae81ff>1</span>,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;FailureAction&#34;</span>: <span style=color:#e6db74>&#34;pause&#34;</span>,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;Monitor&#34;</span>: <span style=color:#ae81ff>5000000000</span>,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;MaxFailureRatio&#34;</span>: <span style=color:#ae81ff>0</span>,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;Order&#34;</span>: <span style=color:#e6db74>&#34;stop-first&#34;</span>
+</span></span><span style=display:flex><span>            },
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;EndpointSpec&#34;</span>: {
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;Mode&#34;</span>: <span style=color:#e6db74>&#34;vip&#34;</span>,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;Ports&#34;</span>: [
+</span></span><span style=display:flex><span>                    {
+</span></span><span style=display:flex><span>                        <span style=color:#e6db74>&#34;Protocol&#34;</span>: <span style=color:#e6db74>&#34;tcp&#34;</span>,
+</span></span><span style=display:flex><span>                        <span style=color:#e6db74>&#34;TargetPort&#34;</span>: <span style=color:#ae81ff>80</span>,
+</span></span><span style=display:flex><span>                        <span style=color:#e6db74>&#34;PublishedPort&#34;</span>: <span style=color:#ae81ff>8888</span>,
+</span></span><span style=display:flex><span>                        <span style=color:#e6db74>&#34;PublishMode&#34;</span>: <span style=color:#e6db74>&#34;ingress&#34;</span>
+</span></span><span style=display:flex><span>                    }
+</span></span><span style=display:flex><span>                ]
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        },
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Endpoint&#34;</span>: {
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;Spec&#34;</span>: {
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;Mode&#34;</span>: <span style=color:#e6db74>&#34;vip&#34;</span>,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;Ports&#34;</span>: [
+</span></span><span style=display:flex><span>                    {
+</span></span><span style=display:flex><span>                        <span style=color:#e6db74>&#34;Protocol&#34;</span>: <span style=color:#e6db74>&#34;tcp&#34;</span>,
+</span></span><span style=display:flex><span>                        <span style=color:#e6db74>&#34;TargetPort&#34;</span>: <span style=color:#ae81ff>80</span>,
+</span></span><span style=display:flex><span>                        <span style=color:#e6db74>&#34;PublishedPort&#34;</span>: <span style=color:#ae81ff>8888</span>,
+</span></span><span style=display:flex><span>                        <span style=color:#e6db74>&#34;PublishMode&#34;</span>: <span style=color:#e6db74>&#34;ingress&#34;</span>
+</span></span><span style=display:flex><span>                    }
+</span></span><span style=display:flex><span>                ]
+</span></span><span style=display:flex><span>            },
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;Ports&#34;</span>: [
+</span></span><span style=display:flex><span>                {
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>&#34;Protocol&#34;</span>: <span style=color:#e6db74>&#34;tcp&#34;</span>,
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>&#34;TargetPort&#34;</span>: <span style=color:#ae81ff>80</span>,
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>&#34;PublishedPort&#34;</span>: <span style=color:#ae81ff>8888</span>,
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>&#34;PublishMode&#34;</span>: <span style=color:#e6db74>&#34;ingress&#34;</span>
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            ],
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;VirtualIPs&#34;</span>: [
+</span></span><span style=display:flex><span>                {
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>&#34;NetworkID&#34;</span>: <span style=color:#e6db74>&#34;d8isx3sccunf33xeb63c1v21x&#34;</span>,
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>&#34;Addr&#34;</span>: <span style=color:#e6db74>&#34;10.0.0.5/24&#34;</span>
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            ]
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>]
+</span></span></code></pre></div><p>可以看到该服务被部署到1号节点上，0节点本地<code>docker ps</code>是没有的，而1节点下出现了该服务</p><h3 id=多个部署动态扩容>多个部署，动态扩容<a hidden class=anchor aria-hidden=true href=#多个部署动态扩容>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker service update --replicas 2 xybdiy-nginx</span>
+</span></span><span style=display:flex><span>xybdiy<span style=color:#f92672>-</span>nginx
+</span></span><span style=display:flex><span>overall progress: <span style=color:#ae81ff>2</span> out of <span style=color:#ae81ff>2</span> tasks 
+</span></span><span style=display:flex><span><span style=color:#ae81ff>1</span><span style=color:#f92672>/</span><span style=color:#ae81ff>2</span>: running   [<span style=color:#f92672>==================================================&gt;</span>] 
+</span></span><span style=display:flex><span><span style=color:#ae81ff>2</span><span style=color:#f92672>/</span><span style=color:#ae81ff>2</span>: running   [<span style=color:#f92672>==================================================&gt;</span>] 
+</span></span><span style=display:flex><span>verify: Service xybdiy<span style=color:#f92672>-</span>nginx converged 
+</span></span></code></pre></div><p>由于第一个服务前面已经部署在1号节点上了，所以这次只需要再部署一个</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker service ls</span>
+</span></span><span style=display:flex><span>ID             NAME           MODE         REPLICAS   IMAGE          PORTS
+</span></span><span style=display:flex><span>qvx9t2qskhr8   xybdiy<span style=color:#f92672>-</span>nginx   replicated   <span style=color:#ae81ff>2</span><span style=color:#e6db74>/2        nginx:latest   *:8888-&gt;80/</span>tcp
+</span></span><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker service ps xybdiy-nginx</span>
+</span></span><span style=display:flex><span>ID             NAME             IMAGE          NODE         DESIRED STATE   CURRENT STATE           ERROR     PORTS
+</span></span><span style=display:flex><span><span style=color:#ae81ff>7</span>jzyf300ygqh   xybdiy<span style=color:#f92672>-</span>nginx<span style=color:#ae81ff>.1</span>   nginx:latest   chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>   Running         Running <span style=color:#ae81ff>9</span> minutes ago             
+</span></span><span style=display:flex><span>i5m1yshi8p8o   xybdiy<span style=color:#f92672>-</span>nginx<span style=color:#ae81ff>.2</span>   nginx:latest   chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>   Running         Running <span style=color:#ae81ff>2</span> minutes ago  
+</span></span></code></pre></div><p>可以看到这次部署到了0号和1号两个节点上，但是注意啊：</p><blockquote><p>1号节点本身是worker，用来运行和部署服务是没问题的</p><p>但是0号节点原来是manager呀，甚至还是leader</p></blockquote><p>所以，再次查看节点信息会发现：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span>root@chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>:<span style=color:#f92672>~</span><span style=color:#75715e># docker node ls</span>
+</span></span><span style=display:flex><span>ID                            HOSTNAME     STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+</span></span><span style=display:flex><span><span style=color:#ae81ff>1e0</span>chr8bpn27vlq9g056zy7a2 <span style=color:#f92672>*</span>   chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>0</span>   Ready     Active         Reachable        <span style=color:#ae81ff>27.3.1</span>
+</span></span><span style=display:flex><span>jb55cgd88n5tl2ybdokhznq1t     chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>   Ready     Active                          <span style=color:#ae81ff>27.3.1</span>
+</span></span><span style=display:flex><span>oav94gisk9wm4mfuqvzpfhqzh     chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>2</span>   Ready     Active                          <span style=color:#ae81ff>27.3.1</span>
+</span></span><span style=display:flex><span>u6x1nn2xjqsfchbtlegne7swf     chenjx12<span style=color:#f92672>-</span><span style=color:#ae81ff>3</span>   Ready     Active         Leader           <span style=color:#ae81ff>27.3.1</span>
+</span></span></code></pre></div><p>leader被转移到另一个manager节点（3号）上了</p><blockquote><p>在Docker Swarm集群中，如果当前的leader节点变得不可用或者其资源不足以运行新的任务，leadership（领导权）会自动转移到另一个manager节点上。这是Swarm集群的高可用特性之一。</p><p>在您描述的场景中，如果有一个manager节点被部署了nginx服务，并且这个manager节点恰好是当前的leader，以下情况可能会发生：</p><ol><li>如果该manager节点只是被分配了nginx服务，并且它仍然能够处理manager节点的职责，那么它仍然可以保持leader的角色。</li><li>如果部署nginx服务导致该manager节点过载，或者由于某些原因它变得不可用（比如网络问题、硬件故障等），Swarm集群会检测到这个问题，并进行以下操作：<ul><li>集群中的其他manager节点会通过raft协议选举出一个新的leader。</li><li>leadership将从当前不可用的manager节点转移到新的leader节点上。</li></ul></li></ol><p>为了确保Swarm集群的稳定性和高可用性，通常建议将manager节点专用于管理任务，而不要在它们上面运行worker任务。这样可以确保manager节点有足够的资源来处理集群管理和决策任务，即使在节点故障的情况下也能保持集群的稳定运行。</p><p>如果您确实需要在manager节点上运行服务，可以通过以下策略来降低风险：</p><ul><li>限制在manager节点上运行的服务数量，确保它们不会消耗过多资源。</li><li>使用资源限制和预留，确保manager节点有足够的资源来执行其管理职责。</li></ul></blockquote><p>如果我们需要保持manager节点不要运行服务，专心管理worker，并且避免leader转移，我们可以使用下面的命令</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span>docker service create <span style=color:#f92672>\</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>--</span>name my_nginx <span style=color:#f92672>\</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>--</span>constraint <span style=color:#e6db74>&#39;node.role != manager&#39;</span> <span style=color:#f92672>\</span>
+</span></span><span style=display:flex><span>  nginx
+</span></span></code></pre></div><p>如果我们要更具体一点，限制它不会部署在某个节点上：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span>使用节点ip限制
+</span></span><span style=display:flex><span>docker service create <span style=color:#f92672>\</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>--</span>name my_nginx <span style=color:#f92672>\</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>--</span>constraint <span style=color:#e6db74>&#39;node.id != node_id&#39;</span> <span style=color:#f92672>\</span>
+</span></span><span style=display:flex><span>  nginx
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>使用节点名称限制
+</span></span><span style=display:flex><span>docker service create <span style=color:#f92672>\</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>--</span>name my_nginx <span style=color:#f92672>\</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>--</span>constraint <span style=color:#e6db74>&#39;node.hostname != node_name&#39;</span> <span style=color:#f92672>\</span>
+</span></span><span style=display:flex><span>  nginx
+</span></span></code></pre></div><p>虽然看上去是只部署在了0号和1号节点，但是实际上你访问集群中任意一个ip的8888端口都能够看到nginx页面</p><p>这就是swarm集群的<strong>负载均衡</strong></p><h2 id=故障>故障<a hidden class=anchor aria-hidden=true href=#故障>#</a></h2><p>前面可以知道，虽然我部署只在两个服务器上但是我访问集群中任意一个ip都能得到服务</p><p>那如果我某个，或者多个服务器挂了呢</p><ul><li><p>首先，我把所有的（两个）manager挂了</p><p>得到的结果是：访问剩下两个worker节点的ip均能得到服务，但是manager不行</p></li><li><p>我把一个manager和一个woker挂了</p><p>得到的结果是：还是能访问到，但是挂了的不行</p><p>并且最后的manager报错：</p><blockquote><p>root@chenjx12-3:~# docker node ls
+Error response from daemon: rpc error: code = Unknown desc = The swarm does not have a leader. It&rsquo;s possible that too few managers are online. Make sure more than half of the managers are online.</p></blockquote></li><li><p>把两个worker都挂掉</p><p>结果是：也是仅存活的两个才能访问，但是使用<code>docker node ls</code>指令不会报错了</p></li></ul><p>所有就引出了我们swarm集群的节点管理规则：</p><h3 id=docker-swarm集群节点规划>Docker Swarm集群节点规划<a hidden class=anchor aria-hidden=true href=#docker-swarm集群节点规划>#</a></h3><p>为了利用 swarm 模式的容错功能，可以根据组织的高可用性要求实现<code>奇数个节点</code>。 当有多个管理中心时，可以从一个管理中心节点的故障中恢复，而无需停机。</p><ul><li>三个管理器群可以容忍最多损失一个管理器。</li><li>五个管理器群最多可以同时丢失两个管理器节点。</li><li>七个管理器群最多可以同时丢失三个管理器节点。</li><li>九个管理器群最多可以同时丢失四个管理器节点。</li><li>Docker 建议一个群最多有七个管理器节点。 （添加更多管理器并不意味着可伸缩性或性能的提高。一般来说，情况恰恰相反。）</li></ul></div><footer class=post-footer><ul class=post-tags><li><a href=https://chenjx12.github.io/tags/docker/>Docker</a></li><li><a href=https://chenjx12.github.io/tags/%E8%BF%90%E7%BB%B4/>运维</a></li><li><a href=https://chenjx12.github.io/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/>云原生</a></li></ul><nav class=paginav><a class=prev href=https://chenjx12.github.io/posts/dockerfile/><span class=title>« Prev</span><br><span>dockerfile</span>
+</a><a class=next href=https://chenjx12.github.io/posts/docker-%E5%85%A5%E9%97%A82/><span class=title>Next »</span><br><span>docker 入门2</span></a></nav></footer></article></main><footer class=footer><span>&copy; 2026 <a href=https://chenjx12.github.io/>Chenjx12's blog</a></span> ·
+<span>Powered by
+<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
+<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentColor"><path d="M12 6H0l6-6z"/></svg>
+</a><script>let menu=document.getElementById("menu");if(menu){const e=localStorage.getItem("menu-scroll-position");e&&(menu.scrollLeft=parseInt(e,10)),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}}document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{const e=document.querySelector("html");e.dataset.theme==="dark"?(e.dataset.theme="light",localStorage.setItem("pref-theme","light")):(e.dataset.theme="dark",localStorage.setItem("pref-theme","dark"))})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="copy";function s(){t.innerHTML="copied!",setTimeout(()=>{t.innerHTML="copy"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script></body></html>
